@@ -1,0 +1,1645 @@
+ 
+Remote Sensing Hands-On Lesson (FORTRAN)
+===========================================================================
+ 
+   February 8, 2010
+ 
+ 
+Overview
+--------------------------------------------------------
+ 
+   In this lesson you will develop a series of simple programs that
+   demonstrate the usage of SPICE to compute a variety of different
+   geometric quantities applicable to experiments carried out by a remote
+   sensing instrument flown on an interplanetary spacecraft. This
+   particular lesson focuses on a framing camera flying on the Cassini
+   spacecraft, but many of the concepts are easily extended and generalized
+   to other scenarios.
+ 
+ 
+Note About HTML Links
+--------------------------------------------------------
+ 
+   The HTML version of this lesson contains links pointing to various HTML
+   documents provided with the Toolkit. All of these links are relative
+   and, in order to function, require this document to be in a certain
+   location in the Toolkit HTML documentation directory tree.
+ 
+   In order for the links to be resolved, create a subdirectory called
+   ``lessons'' under the ``doc/html'' directory of the Toolkit tree and
+   copy this document to that subdirectory before loading it into a Web
+   browser.
+ 
+ 
+References
+--------------------------------------------------------
+ 
+ 
+Tutorials
+ 
+   The following SPICE tutorials are referred to by the discussions in this
+   lesson:
+ 
+      Name             Lesson steps/routines it describes
+      ---------------  -----------------------------------------
+      Time             Time Conversion
+      SCLK and LSK     Time Conversion
+      SPK              Obtaining Ephemeris Data
+      Frames           Reference Frames
+      Using Frames     Reference Frames
+      PCK              Planetary Constants Data
+      CK               Spacecraft Orientation Data
+ 
+   These tutorials are available from the NAIF ftp server at JPL:
+ 
+      http://naif.jpl.nasa.gov/naif/tutorials.html
+ 
+ 
+Required Readings
+ 
+   The Required Reading documents are provided with the Toolkit and are
+   located under the ``toolkit/doc'' directory in the FORTRAN installation
+   tree.
+ 
+      Name             Lesson steps/routines that it describes
+      ---------------  -----------------------------------------
+      time.req         Time Conversion
+      sclk.req         SCLK Time Conversion
+      spk.req          Obtaining Ephemeris Data
+      frames.req       Using Reference Frames
+      pck.req          Obtaining Planetary Constants Data
+      ck.req           Obtaining Spacecraft Orientation Data
+      naif_ids.req     Determining Body ID Codes
+ 
+ 
+The Permuted Index
+ 
+   Another useful document distributed with the Toolkit is the permuted
+   index. This is located under the ``toolkit/doc'' directory in the
+   FORTRAN installation tree.
+ 
+   This text document provides a simple mechanism to discover what SPICE
+   routines perform a particular function of interest as well as the name
+   of the source module that contains the routine. This is particularly
+   useful for FORTRAN programmers because some of the routines are entry
+   points and, therefore, the name does not translate directly into the
+   name of the source module that contains them.
+ 
+ 
+Source Code Header Comments
+ 
+   The most detailed specification of a given SPICE FORTRAN or C routine is
+   contained in the header section of its source code. The source code is
+   distributed with the Toolkit and is located under
+   ``toolkit/src/spicelib'' in FORTRAN and under ``cspice/src/cspice'' in C
+   Toolkits.
+ 
+   For example the source code of the STR2ET/str2et_c routine is
+ 
+      toolkit/src/spicelib/str2et.for
+ 
+   in the FORTRAN Toolkit and in
+ 
+      cspice/src/cspice/str2et_c.c
+ 
+   in the C Toolkit.
+ 
+   Since some of the FORTRAN routines are entry points they are usually
+   part of a source file that has different name. The ``Permuted Index''
+   document mentioned above can be used to locate the name of their source
+   file.
+ 
+ 
+Kernels Used
+--------------------------------------------------------
+ 
+   The following kernels are used in examples provided in this lesson:
+ 
+      #  FILE NAME                 TYPE  DESCRIPTION
+      -- ------------------------- ----  ------------------------
+      1  naif0008.tls              LSK   Generic LSK
+      2  cas00084.tsc              SCLK  Cassini SCLK
+      3  981005_PLTEPH-DE405S.bsp  SPK   Solar System Ephemeris
+      4  020514_SE_SAT105.bsp      SPK   Saturnian Satellite Ephemeris
+      5  030201AP_SK_SM546_T45.bsp SPK   Cassini Spacecraft SPK
+      6  cas_v37.tf                FK    Cassini FK
+      7  04135_04171pc_psiv2.bc    CK    Cassini Spacecraft CK
+      8  cpck05Mar2004.tpc         PCK   Cassini Project PCK
+      9  cas_iss_v09.ti            IK    ISS Instrument Kernel
+ 
+   These SPICE kernels are included in the lesson package available from
+   the NAIF server at JPL:
+ 
+      ftp://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Lessons/
+ 
+ 
+SPICE Modules Used
+--------------------------------------------------------
+ 
+   This section provides a complete summary of the routines, and the
+   kernels that are suggested for usage in each of the exercises in this
+   tutorial. (You may wish to not look at this list unless/until you ``get
+   stuck'' while working on your own.)
+ 
+      CHAPTER EXERCISE   ROUTINES   FUNCTIONS  KERNELS
+      ------- ---------  ---------  ---------  ---------
+        1     convtm     FURNSH                1,2
+                         PROMPT
+                         STR2ET
+                         ETCAL
+                         TIMOUT
+                         SCE2C
+                         SCE2S
+ 
+        2     getsta     FURNSH     VNORM      1,3-5
+                         PROMPT
+                         STR2ET
+                         SPKEZR
+                         SPKPOS
+                         CONVRT
+ 
+        3     xform      FURNSH     VSEP       1-8
+                         PROMPT
+                         STR2ET
+                         SPKEZR
+                         SXFORM
+                         MXVG
+                         SPKPOS
+                         PXFORM
+                         MXV
+                         CONVRT
+ 
+        4     subpts     FURNSH                1,3-5,8
+                         PROMPT
+                         STR2ET
+                         SUBPT
+                         SUBSOL
+ 
+        5     fovint     FURNSH     DPR        1-9
+                         PROMPT
+                         STR2ET
+                         BODN2C
+                         BYEBYE
+                         GETFOV
+                         SINCPT
+                         RECLAT
+                         ILUMIN
+                         ET2LST
+ 
+   Refer to the headers of the various routines listed above, as detailed
+   interface specifications are provided with the source code.
+ 
+ 
+Time Conversion (convtm)
+===========================================================================
+ 
+ 
+Task Statement
+--------------------------------------------------------
+ 
+   Write a program that prompts the user for an input UTC time string,
+   converts it to the following time systems and output formats:
+ 
+       1.   Ephemeris Time (ET) in seconds past J2000
+ 
+       2.   Calendar Ephemeris Time
+ 
+       3.   Spacecraft Clock Time
+ 
+   and displays the results. Use the program to convert "2004 jun 11
+   19:32:00" UTC into these alternate systems.
+ 
+ 
+Learning Goals
+--------------------------------------------------------
+ 
+   Familiarity with the various time conversion and parsing routines
+   available in the Toolkit. Exposure to source code headers and their
+   usage in learning to call routines.
+ 
+ 
+Approach
+--------------------------------------------------------
+ 
+   The solution to the problem can be broken down into a series of simple
+   steps:
+ 
+       --   Decide which SPICE kernels are necessary. Prepare a meta-kernel
+            listing the kernels and load it into the program.
+ 
+       --   Prompt the user for an input UTC time string.
+ 
+       --   Convert the input time string into ephemeris time expressed as
+            seconds past J2000 TDB. Display the result.
+ 
+       --   Convert ephemeris time into a calendar format. Display the
+            result.
+ 
+       --   Convert ephemeris time into a spacecraft clock string. Display
+            the result.
+ 
+   You may find it useful to consult the permuted index, the headers of
+   various source modules, and the ``Time Required Reading'' (time.req) and
+   ``SCLK Required Reading'' (sclk.req) documents.
+ 
+   When completing the ``calendar format'' step above, consider using one
+   of two possible methods: ETCAL or TIMOUT.
+ 
+ 
+Solution
+--------------------------------------------------------
+ 
+ 
+Solution Meta-Kernel
+ 
+   The meta-kernel we created for the solution to this exercise is named
+   'convtm.tm'. Its contents follow:
+ 
+      KPL/MK
+ 
+      This is the meta-kernel used in the solution of the ``Time
+      Conversion'' task in the Remote Sensing Hands On Lesson.
+ 
+         \begindata
+         KERNELS_TO_LOAD = ( 'kernels/lsk/naif0008.tls',
+                             'kernels/sclk/cas00084.tsc' )
+         \begintext
+ 
+ 
+ 
+ 
+Solution Source Code
+ 
+   A sample solution to the problem follows:
+ 
+            PROGRAM CONVTM
+ 
+            IMPLICIT NONE
+ 
+      C
+      C     Local Parameters
+      C
+      C     The name of the meta-kernel that lists the kernels
+      C     to load into the program.
+      C
+            CHARACTER*(*)         METAKR
+            PARAMETER           ( METAKR = 'convtm.tm' )
+ 
+      C
+      C     The spacecraft clock ID code for CASSINI.
+      C
+            INTEGER               SCLKID
+            PARAMETER           ( SCLKID = -82 )
+ 
+      C
+      C     The length of various string variables.
+      C
+            INTEGER               STRLEN
+            PARAMETER           ( STRLEN = 50 )
+ 
+      C
+      C     Local Variables
+      C
+            CHARACTER*(STRLEN)    CALET
+            CHARACTER*(STRLEN)    SCLKST
+            CHARACTER*(STRLEN)    UTCTIM
+ 
+            DOUBLE PRECISION      ET
+ 
+      C
+      C     Load the kernels this program requires.
+      C     Both the spacecraft clock kernel and a
+      C     leapseconds kernel should be listed
+      C     in the meta-kernel.
+      C
+            CALL FURNSH ( METAKR )
+ 
+      C
+      C     Prompt the user for the input time string.
+      C
+            CALL PROMPT ( 'Input UTC Time: ', UTCTIM )
+ 
+            WRITE (*,*) 'Converting UTC Time: ', UTCTIM
+ 
+      C
+      C     Convert UTCTIM to ET.
+      C
+            CALL STR2ET ( UTCTIM, ET )
+ 
+            WRITE (*,'(A,F16.3)') '   ET Seconds Past J2000: ', ET
+ 
+      C
+      C     Now convert ET to a formal calendar time
+      C     string.  This can be accomplished in two
+      C     ways.
+      C
+            CALL ETCAL ( ET, CALET )
+ 
+            WRITE (*,*) '   Calendar ET (ETCAL): ', CALET
+ 
+      C
+      C     Or use TIMOUT for finer control over the
+      C     output format.  The picture below was built
+      C     by examining the header of TIMOUT.
+      C
+            CALL TIMOUT ( ET, 'YYYY-MON-DDTHR:MN:SC ::TDB', CALET )
+ 
+            WRITE (*,*) '   Calendar ET (TIMOUT): ', CALET
+ 
+      C
+      C     Convert ET to spacecraft clock time.
+      C
+            CALL SCE2S ( SCLKID, ET, SCLKST )
+ 
+            WRITE (*,*) '   Spacecraft Clock Time: ', SCLKST
+ 
+            END
+ 
+ 
+Solution Sample Output
+ 
+   After compiling the program, execute it:
+ 
+      Converting UTC Time: 2004 jun 11 19:32:00
+         ET Seconds Past J2000:    140254384.185
+          Calendar ET (ETCAL): 2004 JUN 11 19:33:04.184
+          Calendar ET (TIMOUT): 2004-JUN-11T19:33:04
+          Spacecraft Clock Time: 1/1465674964.105
+ 
+ 
+Obtaining Target States and Positions (getsta)
+===========================================================================
+ 
+ 
+Task Statement
+--------------------------------------------------------
+ 
+   Write a program that prompts the user for an input UTC time string,
+   computes the following quantities at that epoch:
+ 
+       1.   The apparent state of Phoebe as seen from CASSINI in the J2000
+            frame, in kilometers and kilometers/second. This vector itself
+            is not of any particular interest, but it is a useful
+            intermediate quantity in some geometry calculations.
+ 
+       2.   The apparent position of the Earth as seen from CASSINI in the
+            J2000 frame, in kilometers.
+ 
+       3.   The one-way light time between CASSINI and the apparent
+            position of Earth, in seconds.
+ 
+       4.   The apparent position of the Sun as seen from Phoebe in the
+            J2000 frame (J2000), in kilometers.
+ 
+       5.   The actual (geometric) distance between the Sun and Phoebe, in
+            astronomical units.
+ 
+   and displays the results. Use the program to compute these quantities at
+   "2004 jun 11 19:32:00" UTC.
+ 
+ 
+Learning Goals
+--------------------------------------------------------
+ 
+   Understand the anatomy of an SPKEZR call. Discover the difference
+   between SPKEZR and SPKPOS. Familiarity with the Toolkit utility
+   ``brief''. Exposure to unit conversion with SPICE.
+ 
+ 
+Approach
+--------------------------------------------------------
+ 
+   The solution to the problem can be broken down into a series of simple
+   steps:
+ 
+       --   Decide which SPICE kernels are necessary. Prepare a meta-kernel
+            listing the kernels and load it into the program.
+ 
+       --   Prompt the user for an input time string.
+ 
+       --   Convert the input time string into ephemeris time expressed as
+            seconds past J2000 TDB.
+ 
+       --   Compute the state of Phoebe relative to CASSINI in the J2000
+            reference frame, corrected for aberrations.
+ 
+       --   Compute the position of Earth relative to CASSINI in the J2000
+            reference frame, corrected for aberrations. (The routine in the
+            library that computes this also returns the one-way light time
+            between CASSINI and Earth.)
+ 
+       --   Compute the position of the Sun relative to Phoebe in the J2000
+            reference frame, corrected for aberrations.
+ 
+       --   Compute the position of the Sun relative to Phoebe without
+            correcting for aberration.
+ 
+       --   Compute the length of this vector. This provides the desired
+            distance in kilometers.
+ 
+       --   Convert the distance in kilometers into AU.
+ 
+   You may find it useful to consult the permuted index, the headers of
+   various source modules, and the ``SPK Required Reading'' (spk.req)
+   document.
+ 
+   When deciding which SPK files to load, the Toolkit utility ``brief'' may
+   be of some use.
+ 
+   ``brief'' is located in the ``toolkit/exe'' directory for FORTRAN
+   toolkits. Consult its user's guide available in ``toolkit/doc/brief.ug''
+   for details.
+ 
+ 
+Solution
+--------------------------------------------------------
+ 
+ 
+Solution Meta-Kernel
+ 
+   The meta-kernel we created for the solution to this exercise is named
+   'getsta.tm'. Its contents follow:
+ 
+      KPL/MK
+ 
+      This is the meta-kernel used in the solution of the
+      ``Obtaining Target States and Positions'' task in the
+      Remote Sensing Hands On Lesson.
+ 
+         \begindata
+         KERNELS_TO_LOAD = ( 'kernels/lsk/naif0008.tls',
+                             'kernels/spk/981005_PLTEPH-DE405S.bsp',
+                             'kernels/spk/020514_SE_SAT105.bsp',
+                             'kernels/spk/030201AP_SK_SM546_T45.bsp' )
+         \begintext
+ 
+ 
+Solution Source Code
+ 
+   A sample solution to the problem follows:
+ 
+            PROGRAM GETSTA
+ 
+            IMPLICIT NONE
+ 
+      C
+      C     SPICELIB Functions
+      C
+            DOUBLE PRECISION      VNORM
+ 
+      C
+      C     Local Parameters
+      C
+      C
+      C     The name of the meta-kernel that lists the kernels
+      C     to load into the program.
+      C
+            CHARACTER*(*)         METAKR
+            PARAMETER           ( METAKR = 'getsta.tm' )
+ 
+      C
+      C     The length of various string variables.
+      C
+            INTEGER               STRLEN
+            PARAMETER           ( STRLEN = 50 )
+ 
+      C
+      C     Local Variables
+      C
+            CHARACTER*(STRLEN)    UTCTIM
+ 
+            DOUBLE PRECISION      DIST
+            DOUBLE PRECISION      ET
+            DOUBLE PRECISION      LTIME
+            DOUBLE PRECISION      POS   ( 3 )
+            DOUBLE PRECISION      STATE ( 6 )
+ 
+      C
+      C     Load the kernels that this program requires.  We
+      C     will need a leapseconds kernel to convert input
+      C     UTC time strings into ET.  We also will need the
+      C     necessary SPK files with coverage for the bodies
+      C     in which we are interested.
+      C
+            CALL FURNSH ( METAKR )
+ 
+      C
+      C     Prompt the user for the input time string.
+      C
+            CALL PROMPT ( 'Input UTC Time: ', UTCTIM )
+ 
+            WRITE (*,*) 'Converting UTC Time: ', UTCTIM
+ 
+      C
+      C     Convert UTCTIM to ET.
+      C
+            CALL STR2ET ( UTCTIM, ET )
+ 
+            WRITE (*,'(A,F16.3)') '   ET seconds past J2000: ', ET
+ 
+      C
+      C     Compute the apparent state of Phoebe as seen from
+      C     CASSINI in the J2000 frame.  All of the ephemeris
+      C     readers return states in units of kilometers and
+      C     kilometers per second.
+      C
+            CALL SPKEZR ( 'PHOEBE', ET,    'J2000', 'LT+S',
+           .              'CASSINI',  STATE, LTIME               )
+ 
+            WRITE (*,*) '   Apparent state of Phoebe as seen from '
+           .//          'CASSINI in the J2000'
+            WRITE (*,*) '      frame (km, km/s):'
+ 
+            WRITE (*,'(A,F16.3)') '      X = ', STATE(1)
+            WRITE (*,'(A,F16.3)') '      Y = ', STATE(2)
+            WRITE (*,'(A,F16.3)') '      Z = ', STATE(3)
+            WRITE (*,'(A,F16.3)') '     VX = ', STATE(4)
+            WRITE (*,'(A,F16.3)') '     VY = ', STATE(5)
+            WRITE (*,'(A,F16.3)') '     VZ = ', STATE(6)
+ 
+      C
+      C     Compute the apparent position of Earth as seen from
+      C     CASSINI in the J2000 frame.  Note: We could have continued
+      C     using SPKEZR and simply ignored the velocity components.
+      C
+            CALL SPKPOS ( 'EARTH', ET,  'J2000', 'LT+S',
+           .              'CASSINI',   POS, LTIME               )
+ 
+            WRITE (*,*) '   Apparent position of Earth as seen from '
+           .//          'CASSINI in the J2000'
+            WRITE (*,*) '      frame (km):'
+ 
+            WRITE (*,'(A,F16.3)') '      X = ', POS(1)
+            WRITE (*,'(A,F16.3)') '      Y = ', POS(2)
+            WRITE (*,'(A,F16.3)') '      Z = ', POS(3)
+ 
+      C
+      C     We need only display LTIME, as it is precisely the light
+      C     time in which we are interested.
+      C
+            WRITE (*,*) '   One way light time between CASSINI and the '
+           .//          'apparent position'
+            WRITE (*,'(A,F16.3)') '      of Earth (seconds): ', LTIME
+ 
+      C
+      C     Compute the apparent position of the Sun as seen from
+      C     Phoebe in the J2000 frame.
+      C
+            CALL SPKPOS ( 'SUN',  ET,  'J2000', 'LT+S',
+           .              'PHOEBE', POS, LTIME                    )
+ 
+            WRITE (*,*) '   Apparent position of Sun as seen from '
+           .//          'Phoebe in the'
+            WRITE (*,*) '      J2000 frame (km):'
+ 
+            WRITE (*,'(A,F16.3)') '      X = ', POS(1)
+            WRITE (*,'(A,F16.3)') '      Y = ', POS(2)
+            WRITE (*,'(A,F16.3)') '      Z = ', POS(3)
+ 
+      C
+      C     Now we need to compute the actual distance between the Sun
+      C     and Phoebe.  The above SPKPOS call gives us the apparent
+      C     distance, so we need to adjust our aberration correction
+      C     appropriately.
+      C
+            CALL SPKPOS ( 'SUN',  ET,  'J2000', 'NONE',
+           .              'PHOEBE', POS, LTIME                  )
+ 
+      C
+      C     Compute the distance between the body centers in
+      C     kilometers.
+      C
+            DIST = VNORM(POS)
+ 
+      C
+      C     Convert this value to AU using CONVRT.
+      C
+            CALL CONVRT ( DIST, 'KM', 'AU', DIST )
+ 
+            WRITE (*,*) '   Actual distance between Sun and Phoebe body '
+           .//          'centers: '
+            WRITE (*,'(A,F16.3)') '      (AU):', DIST
+ 
+            END
+ 
+ 
+Solution Sample Output
+ 
+   After compiling the program, execute it:
+ 
+      Converting UTC Time: 2004 JUN 11 19:32:00
+         ET seconds past J2000:    140254384.185
+          Apparent state of Phoebe as seen from CASSINI in the J2000
+             frame (km, km/s):
+            X =         -119.921
+            Y =         2194.139
+            Z =          -57.639
+           VX =           -5.980
+           VY =           -2.119
+           VZ =           -0.295
+          Apparent position of Earth as seen from CASSINI in the J2000
+             frame (km):
+            X =    353019393.123
+            Y =  -1328180352.140
+            Z =   -568134171.697
+          One way light time between CASSINI and the apparent position
+            of Earth (seconds):         4960.427
+          Apparent position of Sun as seen from Phoebe in the
+             J2000 frame (km):
+            X =    376551465.272
+            Y =  -1190495630.303
+            Z =   -508438699.110
+          Actual distance between Sun and Phoebe body centers:
+            (AU):           9.012
+ 
+ 
+Spacecraft Orientation and Reference Frames (xform)
+===========================================================================
+ 
+ 
+Task Statement
+--------------------------------------------------------
+ 
+   Write a program that prompts the user for an input time string, computes
+   and displays the following at the epoch of interest:
+ 
+       1.   The apparent state of Phoebe as seen from CASSINI in the
+            IAU_PHOEBE body-fixed frame. This vector itself is not of any
+            particular interest, but it is a useful intermediate quantity
+            in some geometry calculations.
+ 
+       2.   The angular separation between the apparent position of Earth
+            as seen from CASSINI and the nominal boresight of the CASSINI
+            high gain antenna (HGA).
+ 
+            The HGA boresight direction is provided by the kernel variable
+            TKFRAME_-82101_BORESIGHT, which is defined in the Cassini frame
+            kernel cited above in the section ``Kernels Used.'' In this
+            kernel, the HGA boresight vector is expressed relative to the
+            CASSINI_HGA reference frame.
+ 
+   Use the program to compute these quantities at the epoch "2004 jun 11
+   19:32:00" UTC.
+ 
+ 
+Learning Goals
+--------------------------------------------------------
+ 
+   Familiarity with the different types of kernels involved in chaining
+   reference frames together, both inertial and non-inertial. Discover some
+   of the matrix and vector math routines. Understand the difference
+   between PXFORM and SXFORM.
+ 
+ 
+Approach
+--------------------------------------------------------
+ 
+   The solution to the problem can be broken down into a series of simple
+   steps:
+ 
+       --   Decide which SPICE kernels are necessary. Prepare a meta-kernel
+            listing the kernels and load it into the program.
+ 
+       --   Prompt the user for an input time string.
+ 
+       --   Convert the input time string into ephemeris time expressed as
+            seconds past J2000 TDB.
+ 
+       --   Compute the state of Phoebe relative to CASSINI in the J2000
+            reference frame, corrected for aberrations.
+ 
+       --   Compute the state transformation matrix from J2000 to
+            IAU_PHOEBE at the epoch, adjusted for light time.
+ 
+       --   Multiply the state of Phoebe relative to CASSINI in the J2000
+            reference frame by the state transformation matrix computed in
+            the previous step.
+ 
+       --   Compute the position of Earth relative to CASSINI in the J2000
+            reference frame, corrected for aberrations.
+ 
+       --   Determine what the nominal boresight of the CASSINI high gain
+            antenna is by examining the frame kernel's content.
+ 
+       --   Compute the rotation matrix from the CASSINI high gain antenna
+            frame to J2000.
+ 
+       --   Multiply the nominal boresight expressed in the CASSINI high
+            gain antenna frame by the rotation matrix from the previous
+            step.
+ 
+       --   Compute the separation between the result of the previous step
+            and the apparent position of the Earth relative to CASSINI in
+            the J2000 frame.
+ 
+   HINT: Several of the steps above may be compressed into a single using
+   SPICE routines with which you are already familiar. The ``long-way''
+   presented above is intended to facilitate the introduction of the
+   routines PXFORM and SXFORM.
+ 
+   You may find it useful to consult the permuted index, the headers of
+   various source modules, and the following toolkit documentation:
+ 
+       1.   Frames Required Reading (frames.req)
+ 
+       2.   PCK Required Reading (pck.req)
+ 
+       3.   SPK Required Reading (spk.req)
+ 
+       4.   CK Required Reading (ck.req)
+ 
+   This particular example makes use of many of the different types of
+   SPICE kernels. You should spend a few moments thinking about which
+   kernels you will need and what data they provide.
+ 
+ 
+Solution
+--------------------------------------------------------
+ 
+ 
+Solution Meta-Kernel
+ 
+   The meta-kernel we created for the solution to this exercise is named
+   'xform.tm'. Its contents follow:
+ 
+      KPL/MK
+ 
+      This is the meta-kernel used in the solution of the ``Spacecraft
+      Orientation and Reference Frames'' task in the Remote Sensing
+      Hands On Lesson.
+ 
+         \begindata
+         KERNELS_TO_LOAD = ( 'kernels/lsk/naif0008.tls',
+                             'kernels/sclk/cas00084.tsc',
+                             'kernels/spk/981005_PLTEPH-DE405S.bsp',
+                             'kernels/spk/020514_SE_SAT105.bsp',
+                             'kernels/spk/030201AP_SK_SM546_T45.bsp',
+                             'kernels/fk/cas_v37.tf',
+                             'kernels/ck/04135_04171pc_psiv2.bc',
+                             'kernels/pck/cpck05Mar2004.tpc' )
+         \begintext
+ 
+ 
+Solution Source Code
+ 
+   A sample solution to the problem follows:
+ 
+            PROGRAM XFORM
+ 
+            IMPLICIT NONE
+ 
+      C
+      C     SPICELIB Functions
+      C
+            DOUBLE PRECISION      VSEP
+ 
+      C
+      C     Local Parameters
+      C
+      C
+      C     The name of the meta-kernel that lists the kernels
+      C     to load into the program.
+      C
+            CHARACTER*(*)         METAKR
+            PARAMETER           ( METAKR = 'xform.tm' )
+ 
+      C
+      C     The length of various string variables.
+      C
+            INTEGER               STRLEN
+            PARAMETER           ( STRLEN = 50 )
+ 
+      C
+      C     Local Variables
+      C
+            CHARACTER*(STRLEN)    UTCTIM
+ 
+            DOUBLE PRECISION      ET
+            DOUBLE PRECISION      LTIME
+            DOUBLE PRECISION      STATE  ( 6 )
+            DOUBLE PRECISION      BFIXST ( 6 )
+            DOUBLE PRECISION      POS    ( 3 )
+            DOUBLE PRECISION      SXFMAT ( 6, 6 )
+            DOUBLE PRECISION      PFORM  ( 3, 3 )
+            DOUBLE PRECISION      BSIGHT ( 3 )
+            DOUBLE PRECISION      SEP
+ 
+      C
+      C     Load the kernels that this program requires.  We
+      C     will need:
+      C
+      C        A leapseconds kernel
+      C        A spacecraft clock kernel for CASSINI
+      C        The necessary ephemerides
+      C        A planetary constants file (PCK)
+      C        A spacecraft orientation kernel for CASSINI (CK)
+      C        A frame kernel (TF)
+      C
+            CALL FURNSH ( METAKR )
+ 
+      C
+      C     Prompt the user for the input time string.
+      C
+            CALL PROMPT ( 'Input UTC Time: ', UTCTIM )
+ 
+            WRITE (*,*) 'Converting UTC Time: ', UTCTIM
+ 
+      C
+      C     Convert UTCTIM to ET.
+      C
+            CALL STR2ET ( UTCTIM, ET )
+ 
+            WRITE (*,'(A,F16.3)') '   ET seconds past J2000: ', ET
+ 
+      C
+      C     Compute the apparent state of Phoebe as seen from CASSINI
+      C     in the J2000 reference frame.
+      C
+            CALL SPKEZR ( 'PHOEBE',   ET,    'J2000', 'LT+S',
+           .              'CASSINI',  STATE, LTIME           )
+ 
+      C
+      C     Now obtain the transformation from the inertial
+      C     J2000 frame to the non-inertial, body-fixed IAU_PHOEBE
+      C     frame. Since we'll use this transformation to produce
+      C     the apparent state in the IAU_PHOEBE reference frame,
+      C     we need to correct the orientation of this frame for
+      C     one-way light time; hence we subtract LTIME from ET
+      C     in the call below.
+      C
+            CALL SXFORM ( 'J2000', 'IAU_PHOEBE', ET-LTIME, SXFMAT )
+ 
+      C
+      C     Now transform the apparent J2000 state into IAU_PHOEBE
+      C     with the following matrix multiplication:
+      C
+            CALL MXVG ( SXFMAT, STATE, 6, 6, BFIXST )
+ 
+      C
+      C     Display the results.
+      C
+            WRITE (*,*) '   Apparent state of Phoebe as seen from '
+           .//          'CASSINI in the IAU_PHOEBE'
+            WRITE (*,*) '      body-fixed frame (km, km/s):'
+            WRITE (*,'(A,F19.6)') '      X = ', BFIXST(1)
+            WRITE (*,'(A,F19.6)') '      Y = ', BFIXST(2)
+            WRITE (*,'(A,F19.6)') '      Z = ', BFIXST(3)
+            WRITE (*,'(A,F19.6)') '     VX = ', BFIXST(4)
+            WRITE (*,'(A,F19.6)') '     VY = ', BFIXST(5)
+            WRITE (*,'(A,F19.6)') '     VZ = ', BFIXST(6)
+ 
+      C
+      C     It is worth pointing out, all of the above could have
+      C     been done with a single call to SPKEZR:
+      C
+            CALL SPKEZR ( 'PHOEBE', ET,    'IAU_PHOEBE', 'LT+S',
+           .              'CASSINI',  STATE, LTIME               )
+ 
+      C
+      C     Display the results.
+      C
+            WRITE (*,*) '   Apparent state of Phoebe as seen from CASSINI '
+           .//          'in the IAU_PHOEBE'
+            WRITE (*,*) '      body-fixed frame (km, km/s) '
+           .//          'obtained using SPKEZR directly:'
+            WRITE (*,'(A,F19.6)') '      X = ', STATE(1)
+            WRITE (*,'(A,F19.6)') '      Y = ', STATE(2)
+            WRITE (*,'(A,F19.6)') '      Z = ', STATE(3)
+            WRITE (*,'(A,F19.6)') '     VX = ', STATE(4)
+            WRITE (*,'(A,F19.6)') '     VY = ', STATE(5)
+            WRITE (*,'(A,F19.6)') '     VZ = ', STATE(6)
+ 
+      C
+      C     Note that the velocity found by using SPKEZR
+      C     to compute the state in the IAU_PHOEBE frame differs
+      C     at the few mm/second level from that found previously
+      C     by calling SPKEZR and then SXFORM. Computing velocity
+      C     via a single call to SPKEZR as we've done immediately
+      C     above is slightly more accurate because it accounts for
+      C     the effect of the rate of change of light time on the
+      C     apparent angular velocity of the target's body-fixed
+      C     reference frame.
+      C
+      C     Now we are to compute the angular separation between
+      C     the apparent position of the Earth as seen from the
+      C     orbiter and the nominal boresight of the high gain
+      C     antenna.  First, compute the apparent position of
+      C     the Earth as seen from CASSINI in the J2000 frame.
+      C
+            CALL SPKPOS ( 'EARTH', ET,  'J2000', 'LT+S',
+           .              'CASSINI',   POS, LTIME               )
+ 
+      C
+      C     Now compute the location of the antenna boresight
+      C     at this same epoch.  From reading the frame kernel
+      C     we know that the antenna boresight is nominally the
+      C     +Z axis of the CASSINI_HGA frame defined there.
+      C
+            BSIGHT(1) = 0.0D0
+            BSIGHT(2) = 0.0D0
+            BSIGHT(3) = 1.0D0
+ 
+      C
+      C     Now compute the rotation matrix from CASSINI_HGA into
+      C     J2000.
+      C
+            CALL PXFORM ( 'CASSINI_HGA', 'J2000', ET, PFORM )
+ 
+      C
+      C     And multiply the result to obtain the nominal antenna
+      C     boresight in the J2000 reference frame.
+      C
+            CALL MXV ( PFORM, BSIGHT, BSIGHT )
+ 
+      C
+      C     Lastly compute the angular separation.
+      C
+            CALL CONVRT ( VSEP(BSIGHT, POS), 'RADIANS',
+           .              'DEGREES',         SEP        )
+ 
+            WRITE (*,*) '   Angular separation between the '
+           .//          'apparent position of'
+            WRITE (*,*) '      Earth and the CASSINI high '
+           .//          'gain antenna boresight (degrees): '
+            WRITE (*,'(A,F19.3)') '      ', SEP
+ 
+      C
+      C     Or, alternately we can work in the antenna
+      C     frame directly.
+      C
+            CALL SPKPOS ( 'EARTH', ET,  'CASSINI_HGA', 'LT+S',
+           .              'CASSINI',   POS, LTIME              )
+ 
+      C
+      C     The antenna boresight is the Z-axis in the
+      C     CASSINI_HGA frame.
+      C
+            BSIGHT(1) = 0.0D0
+            BSIGHT(2) = 0.0D0
+            BSIGHT(3) = 1.0D0
+ 
+      C
+      C     Lastly compute the angular separation.
+      C
+            CALL CONVRT ( VSEP(BSIGHT, POS), 'RADIANS',
+           .              'DEGREES',         SEP        )
+ 
+            WRITE (*,*) '   Angular separation between the '
+           .//          'apparent position of'
+            WRITE (*,*) '      Earth and the CASSINI high gain '
+           .//          'antenna boresight computed '
+            WRITE (*,*) '      using vectors in the CASSINI_HGA '
+           .//          'frame (degrees): '
+            WRITE (*,'(A,F19.3)') '      ', SEP
+ 
+            END
+ 
+ 
+Solution Sample Output
+ 
+   After compiling the program, execute it:
+ 
+      Input UTC Time:  Converting UTC Time: 2004 JUN 11 19:32:00
+         ET seconds past J2000:    140254384.185
+          Apparent state of Phoebe as seen from CASSINI in the IAU_PHOEBE
+             body-fixed frame (km, km/s):
+            X =        -1982.639762
+            Y =         -934.530471
+            Z =         -166.562595
+           VX =            3.970833
+           VY =           -3.812498
+           VZ =           -2.371663
+          Apparent state of Phoebe as seen from CASSINI in the IAU_PHOEBE
+             body-fixed frame (km, km/s) obtained using SPKEZR directly:
+            X =        -1982.639762
+            Y =         -934.530471
+            Z =         -166.562595
+           VX =            3.970832
+           VY =           -3.812496
+           VZ =           -2.371663
+          Angular separation between the apparent position of
+             Earth and the CASSINI high gain antenna boresight (degrees):
+                         71.924
+          Angular separation between the apparent position of
+             Earth and the CASSINI high gain antenna boresight computed
+             using vectors in the CASSINI_HGA frame (degrees):
+                         71.924
+ 
+ 
+Computing Sub-spacecraft and Sub-solar Points (subpts)
+===========================================================================
+ 
+ 
+Task Statement
+--------------------------------------------------------
+ 
+   Write a program that prompts the user for an input UTC time string,
+   computes the following quantities at that epoch:
+ 
+       1.   The apparent sub-observer point of CASSINI on Phoebe in the
+            body fixed frame IAU_PHOEBE in kilometers.
+ 
+       2.   The apparent sub-solar point on Phoebe as seen from CASSINI in
+            the body fixed frame IAU_PHOEBE in kilometers.
+ 
+   and displays the results. Use the program to compute these quantities at
+   "2004 jun 11 19:32:00" UTC.
+ 
+ 
+Learning Goals
+--------------------------------------------------------
+ 
+   Discover higher level geometry calculation routines in SPICE and their
+   usage as it relates to CASSINI.
+ 
+ 
+Approach
+--------------------------------------------------------
+ 
+   This particular problem is more of an exercise in searching the permuted
+   index to find the appropriate routines and then reading their headers to
+   understand how to call them.
+ 
+   One point worth considering: Which method do you want to use to compute
+   the sub-solar (or sub-observer) point?
+ 
+ 
+Solution
+--------------------------------------------------------
+ 
+ 
+Solution Meta-Kernel
+ 
+   The meta-kernel we created for the solution to this exercise is named
+   'subpts.tm'. Its contents follow:
+ 
+      KPL/MK
+ 
+      This is the meta-kernel used in the solution of the
+      ``Computing Sub-spacecraft and Sub-solar Points'' task
+      in the Remote Sensing Hands On Lesson.
+ 
+         \begindata
+         KERNELS_TO_LOAD = ( 'kernels/lsk/naif0008.tls',
+                             'kernels/spk/981005_PLTEPH-DE405S.bsp',
+                             'kernels/spk/020514_SE_SAT105.bsp',
+                             'kernels/spk/030201AP_SK_SM546_T45.bsp',
+                             'kernels/pck/cpck05Mar2004.tpc' )
+         \begintext
+ 
+ 
+Solution Source Code
+ 
+   A sample solution to the problem follows:
+ 
+            PROGRAM SUBPTS
+ 
+            IMPLICIT NONE
+      C
+      C     SPICELIB functions
+      C
+            DOUBLE PRECISION      VNORM
+ 
+      C
+      C     Local Parameters
+      C
+      C
+      C     The name of the meta-kernel that lists the kernels
+      C     to load into the program.
+      C
+            CHARACTER*(*)         METAKR
+            PARAMETER           ( METAKR = 'subpts.tm' )
+ 
+      C
+      C     The length of various string variables.
+      C
+            INTEGER               STRLEN
+            PARAMETER           ( STRLEN = 50 )
+ 
+      C
+      C     Local Variables
+      C
+            CHARACTER*(STRLEN)    UTCTIM
+ 
+            DOUBLE PRECISION      ET
+            DOUBLE PRECISION      SPOINT ( 3 )
+            DOUBLE PRECISION      SRFVEC ( 3 )
+            DOUBLE PRECISION      TRGEPC
+ 
+      C
+      C     Load the kernels that this program requires.  We
+      C     will need:
+      C
+      C        A leapseconds kernel
+      C        The necessary ephemerides
+      C        A planetary constants file (PCK)
+      C
+            CALL FURNSH ( METAKR )
+ 
+      C
+      C     Prompt the user for the input time string.
+      C
+            CALL PROMPT ( 'Input UTC Time: ', UTCTIM )
+ 
+            WRITE (*,*) 'Converting UTC Time: ', UTCTIM
+ 
+      C
+      C     Convert UTCTIM to ET.
+      C
+            CALL STR2ET ( UTCTIM, ET )
+ 
+            WRITE (*,'(A,F16.3)') '   ET seconds past J2000: ', ET
+ 
+      C
+      C     Compute the apparent sub-observer point of CASSINI on Phoebe.
+      C
+            CALL SUBPNT ( 'NEAR POINT: ELLIPSOID',
+           .              'PHOEBE',  ET,     'IAU_PHOEBE', 'LT+S',
+           .              'CASSINI', SPOINT, TRGEPC,       SRFVEC )
+ 
+            WRITE (*,*) '   Apparent sub-observer point of CASSINI '
+           .//          'on Phoebe in the'
+            WRITE (*,*) '   IAU_PHOEBE frame (km):'
+            WRITE (*,'(A,F16.3)') '      X = ', SPOINT(1)
+            WRITE (*,'(A,F16.3)') '      Y = ', SPOINT(2)
+            WRITE (*,'(A,F16.3)') '      Z = ', SPOINT(3)
+            WRITE (*,'(A,F16.3)') '    ALT = ', VNORM(SRFVEC)
+ 
+      C
+      C     Compute the apparent sub-solar point on Phoebe as seen
+      C     from CASSINI.
+      C
+            CALL SUBSLR ( 'NEAR POINT: ELLIPSOID',
+           .              'PHOEBE',  ET,     'IAU_PHOEBE', 'LT+S',
+           .              'CASSINI', SPOINT, TRGEPC,       SRFVEC )
+ 
+            WRITE (*,*) '   Apparent sub-solar point on Phoebe as '
+           .//          'seen from CASSINI in'
+            WRITE (*,*) '   the IAU_PHOEBE frame (km):'
+            WRITE (*,'(A,F16.3)') '      X = ', SPOINT(1)
+            WRITE (*,'(A,F16.3)') '      Y = ', SPOINT(2)
+            WRITE (*,'(A,F16.3)') '      Z = ', SPOINT(3)
+ 
+            END
+ 
+ 
+Solution Sample Output
+ 
+   After compiling the program, execute it:
+ 
+      Converting UTC Time: 2004 JUN 11 19:32:00
+         ET seconds past J2000:    140254384.185
+          Apparent sub-observer point of CASSINI on Phoebe in the
+          IAU_PHOEBE frame (km):
+            X =          104.498
+            Y =           45.269
+            Z =            7.383
+          ALT =         2084.116
+          Apparent sub-solar point on Phoebe as seen from CASSINI in
+          the IAU_PHOEBE frame (km):
+            X =           78.681
+            Y =           76.879
+            Z =          -21.885
+ 
+ 
+Intersecting Vectors with a Triaxial Ellipsoid (fovint)
+===========================================================================
+ 
+ 
+Task Statement
+--------------------------------------------------------
+ 
+   Write a program that prompts the user for an input UTC time string and,
+   for that time, computes the intersection of the CASSINI ISS NAC camera
+   boresight and field of view (FOV) boundary vectors with the surface of
+   Phoebe. The program presents each point of intersection as
+ 
+       1.   A cartesian vector in the IAU_PHOEBE frame
+ 
+       2.   Planetocentric (latitudinal) coordinates in the IAU_PHOEBE
+            frame.
+ 
+   For each vector, if an intersection is found, the program displays the
+   results of the above computations, otherwise it indicates no
+   intersection has occurred.
+ 
+   At each point of intersection compute the following:
+ 
+       3.   Phase angle
+ 
+       4.   Solar incidence angle
+ 
+       5.   Emission angle
+ 
+   Additionally compute the local solar time at the intercept of the camera
+   boresight with the surface of Phoebe.
+ 
+   Use this program to compute values at the epoch:
+ 
+            2004 jun 11 19:32:00 UTC
+ 
+ 
+Learning Goals
+--------------------------------------------------------
+ 
+   Understand how field of view parameters are retrieved from instrument
+   kernels. Learn how various standard planetary constants are retrieved
+   from text PCKs. Discover how to compute the intersection of field of
+   view vectors with triaxial ellipsoidal target bodies. Discover another
+   high level geometry routine and another time conversion routine in
+   SPICE.
+ 
+ 
+Approach
+--------------------------------------------------------
+ 
+   This problem can be broken down into several simple, small steps:
+ 
+       --   Decide which SPICE kernels are necessary. Prepare a meta-kernel
+            listing the kernels and load it into the program. Remember, you
+            will need to find a kernel with information about the CASSINI
+            NAC camera.
+ 
+       --   Prompt the user for an input time string.
+ 
+       --   Convert the input time string into ephemeris time expressed as
+            seconds past J2000 TDB.
+ 
+       --   Retrieve the FOV (field of view) configuration for the CASSINI
+            NAC camera.
+ 
+   For each vector in the set of boundary corner vectors, and for the
+   boresight vector, perform the following operations:
+ 
+       --   Compute the intercept of the vector with Phoebe.
+ 
+       --   If this intercept is found, convert the position vector of the
+            intercept into planetocentric coordinates.
+ 
+            Then compute the phase, solar incidence, and emission angles at
+            the intercept. Otherwise indicate to the user no intercept was
+            found for this vector.
+ 
+       --   Compute the planetocentric longitude of the boresight
+            intercept.
+ 
+   Finally
+ 
+       --   Compute the local solar time at the boresight intercept
+            longitude on a 24-hour clock. The input time for this
+            computation should be the TDB observation epoch minus one-way
+            light time from the boresight intercept to the spacecraft.
+ 
+   It may be useful to consult the CASSINI ISS instrument kernel to
+   determine the name of the NAC camera as well as its configuration. This
+   exercise may make use of some of the concepts and (loosely) code from
+   the ``Spacecraft Orientation and Reference Frames'' task.
+ 
+ 
+Solution
+--------------------------------------------------------
+ 
+ 
+Solution Meta-Kernel
+ 
+   The meta-kernel we created for the solution to this exercise is named
+   'fovint.tm'. Its contents follow:
+ 
+      KPL/MK
+ 
+      This is the meta-kernel used in the solution of the
+      ``Intersecting Vectors with a Triaxial Ellipsoid'' task
+      in the Remote Sensing Hands On Lesson.
+ 
+         \begindata
+         KERNELS_TO_LOAD = ( 'kernels/lsk/naif0008.tls',
+                             'kernels/sclk/cas00084.tsc',
+                             'kernels/spk/981005_PLTEPH-DE405S.bsp',
+                             'kernels/spk/020514_SE_SAT105.bsp',
+                             'kernels/spk/030201AP_SK_SM546_T45.bsp',
+                             'kernels/fk/cas_v37.tf',
+                             'kernels/ck/04135_04171pc_psiv2.bc',
+                             'kernels/pck/cpck05Mar2004.tpc',
+                             'kernels/ik/cas_iss_v09.ti' )
+         \begintext
+ 
+ 
+Solution Source Code
+ 
+   A sample solution to the problem follows:
+ 
+            PROGRAM FOVINT
+ 
+            IMPLICIT NONE
+ 
+      C
+      C     SPICELIB functions
+      C
+            DOUBLE PRECISION      DPR
+ 
+      C
+      C     Local Parameters
+      C
+      C
+      C     The name of the meta-kernel that lists the kernels
+      C     to load into the program.
+      C
+            CHARACTER*(*)         METAKR
+            PARAMETER           ( METAKR = 'fovint.tm' )
+ 
+      C
+      C     The length of various string variables.
+      C
+            INTEGER               STRLEN
+            PARAMETER           ( STRLEN = 50 )
+ 
+      C
+      C     The maximum number of boundary corner vectors
+      C     we can retrieve.
+      C
+            INTEGER               BCVLEN
+            PARAMETER           ( BCVLEN = 5 )
+ 
+      C
+      C     Local Variables
+      C
+            CHARACTER*(STRLEN)    AMPM
+            CHARACTER*(STRLEN)    INSFRM
+            CHARACTER*(STRLEN)    SHAPE
+            CHARACTER*(STRLEN)    TIME
+            CHARACTER*(STRLEN)    UTCTIM
+            CHARACTER*(STRLEN)    VECNAM ( BCVLEN )
+ 
+            DOUBLE PRECISION      BOUNDS ( 3, BCVLEN )
+            DOUBLE PRECISION      BSIGHT ( 3 )
+            DOUBLE PRECISION      EMISSN
+            DOUBLE PRECISION      ET
+            DOUBLE PRECISION      LAT
+            DOUBLE PRECISION      LON
+            DOUBLE PRECISION      PHASE
+            DOUBLE PRECISION      POINT  ( 3 )
+            DOUBLE PRECISION      RADIUS
+            DOUBLE PRECISION      SOLAR
+            DOUBLE PRECISION      SRFVEC ( 3 )
+            DOUBLE PRECISION      TRGEPC
+ 
+            INTEGER               HR
+            INTEGER               I
+            INTEGER               MN
+            INTEGER               N
+            INTEGER               NACID
+            INTEGER               PHOEID
+            INTEGER               SC
+ 
+            LOGICAL               FOUND
+ 
+      C
+      C     Load the kernels that this program requires. We
+      C     will need:
+      C
+      C        A leapseconds kernel.
+      C        A SCLK kernel for CASSINI.
+      C        Any necessary ephemerides.
+      C        The CASSINI frame kernel.
+      C        A CASSINI C-kernel.
+      C        A PCK file with Phoebe constants.
+      C        The CASSINI ISS I-kernel.
+      C
+            CALL FURNSH ( METAKR )
+ 
+      C
+      C     Prompt the user for the input time string.
+      C
+            CALL PROMPT ( 'Input UTC Time: ', UTCTIM )
+ 
+            WRITE (*,*) 'Converting UTC Time: ', UTCTIM
+ 
+      C
+      C     Convert UTCTIM to ET.
+      C
+            CALL STR2ET ( UTCTIM, ET )
+ 
+            WRITE (*,'(A,F16.3)') '   ET seconds past J2000: ', ET
+ 
+      C
+      C     Now we need to obtain the FOV configuration of the NAC
+      C     camera. To do this we will need the ID code for
+      C     CASSINI_ISS_NAC.
+      C
+            CALL BODN2C ( 'CASSINI_ISS_NAC', NACID, FOUND )
+ 
+      C
+      C     Stop the program if the code was not found.
+      C
+            IF ( .NOT. FOUND ) THEN
+               WRITE (*,*) 'Unable to locate the ID code for '
+           .   //          'CASSINI_ISS_NAC'
+               CALL BYEBYE ( 'FAILURE' )
+            END IF
+ 
+      C
+      C     Now retrieve the field of view parameters.
+      C
+            CALL GETFOV ( NACID,  BCVLEN, SHAPE, INSFRM,
+           .              BSIGHT, N,      BOUNDS        )
+ 
+      C
+      C     Rather than treat BSIGHT as a separate vector,
+      C     copy it into the last slot of BOUNDS.
+      C
+            CALL MOVED ( BSIGHT, 3, BOUNDS(1,5) )
+ 
+      C
+      C     Define names for each of the vectors for display
+      C     purposes.
+      C
+            VECNAM (1) = 'Boundary Corner 1'
+            VECNAM (2) = 'Boundary Corner 2'
+            VECNAM (3) = 'Boundary Corner 3'
+            VECNAM (4) = 'Boundary Corner 4'
+            VECNAM (5) = 'Cassini NAC Boresight'
+ 
+      C
+      C     Now perform the same set of calculations for each
+      C     vector listed in the BOUNDS array.
+      C
+            DO I = 1, 5
+      C
+      C        Call SINCPT to determine coordinates of the
+      C        intersection of this vector with the surface
+      C        of Phoebe.
+      C
+               CALL SINCPT ( 'Ellipsoid',  'PHOEBE',    ET,
+           .                 'IAU_PHOEBE', 'LT+S',      'CASSINI',
+           .                 INSFRM,       BOUNDS(1,I), POINT,
+           .                 TRGEPC,       SRFVEC,      FOUND    )
+      C
+      C        Check the found flag. Display a message if the point
+      C        of intersection was not found, otherwise continue with
+      C        the calculations.
+      C
+               WRITE (*,*) 'Vector: ', VECNAM(I)
+ 
+               IF ( .NOT. FOUND ) THEN
+ 
+                  WRITE (*,*) 'No intersection point found at '
+           .      //          'this epoch for this vector.'
+ 
+               ELSE
+      C
+      C           Now, we have discovered a point of intersection.
+      C           Start by displaying the position vector in the
+      C           IAU_PHOEBE frame of the intersection.
+      C
+                  WRITE (*,*) '  Position vector of '
+           .      //          'surface intercept in '
+           .      //          'the IAU_PHOEBE frame (km):'
+                  WRITE (*,'(A,F16.3)') '      X   = ', POINT(1)
+                  WRITE (*,'(A,F16.3)') '      Y   = ', POINT(2)
+                  WRITE (*,'(A,F16.3)') '      Z   = ', POINT(3)
+      C
+      C           Display the planetocentric latitude and longitude
+      C           of the intercept.
+      C
+                  CALL RECLAT ( POINT, RADIUS, LON, LAT )
+ 
+                  WRITE (*,*) '  Planetocentric coordinates of the '
+           .      //          'intercept (degrees):'
+                  WRITE (*,'(A,F16.3)') '      LAT = ', LAT * DPR()
+                  WRITE (*,'(A,F16.3)') '      LON = ', LON * DPR()
+      C
+      C           Compute the illumination angles at this
+      C           point.
+      C
+                  CALL ILUMIN ( 'Ellipsoid',  'PHOEBE',  ET,
+           .                    'IAU_PHOEBE', 'LT+S',    'CASSINI',
+           .                    POINT,        TRGEPC,    SRFVEC,
+           .                    PHASE,        SOLAR,     EMISSN    )
+ 
+                  WRITE (*,'(A,F16.3)') '   Phase angle (degrees):'
+           .      //                    '           ', PHASE * DPR()
+                  WRITE (*,'(A,F16.3)') '   Solar incidence angle '
+           .      //                    '(degrees): ', SOLAR * DPR()
+                  WRITE (*,'(A,F16.3)') '   Emission angle (degree'
+           .      //                    's):        ', EMISSN* DPR()
+ 
+               END IF
+ 
+               WRITE (*,*) ' '
+ 
+            END DO
+ 
+      C
+      C     Lastly compute the local solar time at the boresight
+      C     intersection.
+      C
+            IF ( FOUND ) THEN
+      C
+      C        Get Phoebe ID.
+      C
+               CALL BODN2C ( 'PHOEBE', PHOEID, FOUND )
+      C
+      C        Stop the program if the code was not found.
+      C
+               IF ( .NOT. FOUND ) THEN
+                  WRITE (*,*) 'Unable to locate the ID code for '
+           .   //             'PHOEBE'
+                  CALL BYEBYE ( 'FAILURE' )
+               END IF
+      C
+      C        Compute local time corresponding to the TDB light time
+      C        corrected epoch at the intercept.
+      C
+               CALL ET2LST ( TRGEPC,
+           .                 PHOEID,
+           .                 LON,
+           .                 'PLANETOCENTRIC',
+           .                 HR,
+           .                 MN,
+           .                 SC,
+           .                 TIME,
+           .                 AMPM              )
+ 
+               WRITE (*,*) '  Local Solar Time at boresight '
+           .   //          'intercept (24 Hour Clock): '
+               WRITE (*,*) '     ', TIME
+ 
+            ELSE
+ 
+               WRITE (*,*) '   No boresight intercept to compute '
+           .   //          'local solar time.'
+ 
+            END IF
+ 
+            END
+ 
+ 
+Solution Sample Output
+ 
+   After compiling the program, execute it:
+ 
+      Converting UTC Time: 2004 JUN 11 19:32:00
+         ET seconds past J2000:    140254384.185
+       Vector: Boundary Corner 1
+         Position vector of surface intercept in the IAU_PHOEBE frame (km):
+            X   =           91.026
+            Y   =           67.190
+            Z   =            2.030
+         Planetocentric coordinates of the intercept (degrees):
+            LAT =            1.028
+            LON =           36.433
+         Phase angle (degrees):                     28.110
+         Solar incidence angle (degrees):           16.121
+         Emission angle (degrees):                  14.627
+ 
+       Vector: Boundary Corner 2
+         Position vector of surface intercept in the IAU_PHOEBE frame (km):
+            X   =           89.991
+            Y   =           66.726
+            Z   =           14.733
+         Planetocentric coordinates of the intercept (degrees):
+            LAT =            7.492
+            LON =           36.556
+         Phase angle (degrees):                     27.894
+         Solar incidence angle (degrees):           22.894
+         Emission angle (degrees):                  14.988
+ 
+       Vector: Boundary Corner 3
+         Position vector of surface intercept in the IAU_PHOEBE frame (km):
+            X   =           80.963
+            Y   =           76.643
+            Z   =           14.427
+         Planetocentric coordinates of the intercept (degrees):
+            LAT =            7.373
+            LON =           43.430
+         Phase angle (degrees):                     28.171
+         Solar incidence angle (degrees):           21.315
+         Emission angle (degrees):                  21.977
+ 
+       Vector: Boundary Corner 4
+         Position vector of surface intercept in the IAU_PHOEBE frame (km):
+            X   =           81.997
+            Y   =           77.106
+            Z   =            1.699
+         Planetocentric coordinates of the intercept (degrees):
+            LAT =            0.865
+            LON =           43.239
+         Phase angle (degrees):                     28.385
+         Solar incidence angle (degrees):           13.882
+         Emission angle (degrees):                  21.763
+ 
+       Vector: Cassini NAC Boresight
+         Position vector of surface intercept in the IAU_PHOEBE frame (km):
+            X   =           86.390
+            Y   =           72.089
+            Z   =            8.255
+         Planetocentric coordinates of the intercept (degrees):
+            LAT =            4.196
+            LON =           39.844
+         Phase angle (degrees):                     28.139
+         Solar incidence angle (degrees):           18.247
+         Emission angle (degrees):                  17.858
+ 
+         Local Solar Time at boresight intercept (24 Hour Clock):
+            11:31:50
+ 

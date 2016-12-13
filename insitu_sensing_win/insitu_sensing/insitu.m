@@ -1,0 +1,78 @@
+function insitu()
+% In-situ Sensing Hands-On Lesson
+mk = 'C:\Users\awinhold\Documents\SPICE\lessons\insitu_sensing_win\insitu_sensing\kernels\mk\insitu.tm';
+cspice_furnsh(mk);
+fprintf('Meta Kernel Furnished \n')
+
+% Convert UTC entry into ET.
+utc = input('Enter UTC date: ', 's');
+et = cspice_str2et(utc);
+fprintf('UTC converted to ET seconds past J2000: %16.3f\n', et)
+
+% Convert Cassini onboard sclk to ET
+% Shorter route would be to identify the Cassini ID as -82 and skip
+% the bodn2c step with: cas_id = -82
+cas_id = cspice_bodn2c('CASSINI');
+sclk = input('Enter sclk time format: ', 's');
+et1 = cspice_scs2e(cas_id, sclk);
+
+% Compute the generic geometric state of Cassini with respect to the Sun at
+% the epoch specified by the above sclk.
+[state, ltime] = cspice_spkezr('CASSINI', et1, 'ECLIPJ2000', 'NONE','SUN');
+fprintf('--------------------------------------\n')
+disp('   State of Cassini at set epoch')
+fprintf('--------------------------------------\n')
+fprintf('      %f \n', state(:))
+
+% Compute the apparent direction of the Sun in the INMS frame at the epoch
+% defined by sclk above.
+[ptarg, ltime] = cspice_spkpos('SUN', et, 'CASSINI_INMS', 'LT+S', 'CASSINI');
+% Normalize the vector
+sundir = ptarg/norm(ptarg);
+fprintf('--------------------------------------\n')
+disp('   Sun Direction')
+fprintf('--------------------------------------\n')
+fprintf('      %f \n',sundir)
+fprintf('--------------------------------------\n')
+
+% Compute planetocentric longitude and latitude of sub-spacecraft point on
+% Phoebe, and the direction from the spacecraft to that point in the INMS
+% frame.
+[subpoint, trgepc, srfvec] = cspice_subpnt('Near point: ellipsoid', 'PHOEBE', et1, 'IAU_PHOEBE', 'NONE', 'CASSINI');
+[rad, lon, lat] = cspice_reclat(subpoint);
+rot_mat = cspice_pxform('IAU_PHOEBE', 'CASSINI_INMS', et1);
+
+disp('   Rotation Matrix')
+fprintf('--------------------------------------\n')
+fprintf('      %f \n', rot_mat)
+
+sbpdir = rot_mat * srfvec;
+sbpdir = sbpdir/norm(sbpdir);
+fprintf('--------------------------------------\n')
+disp('   Sub Point Direction')
+fprintf('--------------------------------------\n')
+fprintf('      %f \n', sbpdir)
+
+fprintf('--------------------------------------\n')
+fprintf('   lon    = %f\n', lon * cspice_dpr())
+fprintf('   lat    = %f\n', lat * cspice_dpr())
+fprintf('--------------------------------------\n')
+
+% Compute the spacecraft velocity with respect to Phoebe in INMS frame.
+[state1, ltime1] = cspice_spkezr('CASSINI', et1, 'J2000', 'NONE', 'PHOEBE');
+rot_mat1 = cspice_pxform('J2000', 'CASSINI_INMS', et1);
+
+scvdir = state1(4:6);
+scvdir = rot_mat1 * scvdir;
+scvdir = scvdir/norm(scvdir);
+
+disp('   scvdir = ')
+fprintf('--------------------------------------\n')
+fprintf('      %f\n', scvdir)
+fprintf('--------------------------------------\n')
+
+
+
+
+cspice_unload(mk)
+fprintf('Meta Kernel Unloaded \n')

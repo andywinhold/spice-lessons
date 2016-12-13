@@ -1,0 +1,1447 @@
+<HTML>
+<HEAD>
+<TITLE> In-situ Sensing Hands-On Lesson (IDL) </TITLE>
+</HEAD>
+
+<BODY style="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);">
+
+<A NAME="top"></A>
+
+<TABLE STYLE="text-align: left; margin-left: auto; margin-right: auto; width: 800px;" BORDER="0" CELLPADDING="5" CELLSPACING="2">
+<TBODY>
+<TR>
+  <TD STYLE="background-color: rgb(153, 153, 153); vertical-align: middle; text-align: center;">
+  <DIV ALIGN="right">
+    <SMALL><SMALL><a href="../index.html">Main Page</a></SMALL></SMALL>
+  </DIV>
+  <B>In-situ Sensing Hands-On Lesson (IDL)</B> </TD>
+</TR>
+<TR>
+  <TD STYLE="vertical-align: top;">
+
+<H2> Table of Contents
+</H2>
+
+<PRE>
+   <A HREF="#In-situ Sensing Hands-On Lesson (IDL)">In-situ Sensing Hands-On Lesson (IDL)</A>
+      <A HREF="#Overview">Overview</A>
+      <A HREF="#Note About HTML Links">Note About HTML Links</A>
+      <A HREF="#References">References</A>
+         <A HREF="#Tutorials">Tutorials</A>
+         <A HREF="#Required Reading Documents">Required Reading Documents</A>
+         <A HREF="#Icy API Documentation">Icy API Documentation</A>
+      <A HREF="#Kernels Used">Kernels Used</A>
+      <A HREF="#Icy Routines Used">Icy Routines Used</A>
+   <A HREF="#Step-1: ``UTC to ET''">Step-1: ``UTC to ET''</A>
+      <A HREF="#``UTC to ET'' Task Statement">``UTC to ET'' Task Statement</A>
+      <A HREF="#``UTC to ET'' Hints">``UTC to ET'' Hints</A>
+      <A HREF="#``UTC to ET'' Solution Steps">``UTC to ET'' Solution Steps</A>
+      <A HREF="#``UTC to ET'' Code">``UTC to ET'' Code</A>
+   <A HREF="#Step-2: ``SCLK to ET''">Step-2: ``SCLK to ET''</A>
+      <A HREF="#``SCLK to ET'' Task Statement">``SCLK to ET'' Task Statement</A>
+      <A HREF="#``SCLK to ET'' Hints">``SCLK to ET'' Hints</A>
+      <A HREF="#``SCLK to ET'' Solution Steps">``SCLK to ET'' Solution Steps</A>
+      <A HREF="#``SCLK to ET'' Code">``SCLK to ET'' Code</A>
+   <A HREF="#Step-3: ``Spacecraft State''">Step-3: ``Spacecraft State''</A>
+      <A HREF="#``Spacecraft State'' Task Statement">``Spacecraft State'' Task Statement</A>
+      <A HREF="#``Spacecraft State'' Hints">``Spacecraft State'' Hints</A>
+      <A HREF="#``Spacecraft State'' Solution Steps">``Spacecraft State'' Solution Steps</A>
+      <A HREF="#``Spacecraft State'' Code">``Spacecraft State'' Code</A>
+   <A HREF="#Step-4: ``Sun Direction''">Step-4: ``Sun Direction''</A>
+      <A HREF="#``Sun Direction'' Task Statement">``Sun Direction'' Task Statement</A>
+      <A HREF="#``Sun Direction'' Hints">``Sun Direction'' Hints</A>
+      <A HREF="#``Sun Direction'' Solution Steps">``Sun Direction'' Solution Steps</A>
+      <A HREF="#``Sun Direction'' Code">``Sun Direction'' Code</A>
+   <A HREF="#Step-5: ``Sub-Spacecraft Point''">Step-5: ``Sub-Spacecraft Point''</A>
+      <A HREF="#``Sub-Spacecraft Point'' Task Statement">``Sub-Spacecraft Point'' Task Statement</A>
+      <A HREF="#``Sub-Spacecraft Point'' Hints">``Sub-Spacecraft Point'' Hints</A>
+      <A HREF="#``Sub-Spacecraft Point'' Solution Steps">``Sub-Spacecraft Point'' Solution Steps</A>
+      <A HREF="#``Sub-Spacecraft Point'' Code">``Sub-Spacecraft Point'' Code</A>
+   <A HREF="#Step-6: ``Spacecraft Velocity''">Step-6: ``Spacecraft Velocity''</A>
+      <A HREF="#``Spacecraft Velocity'' Task Statement">``Spacecraft Velocity'' Task Statement</A>
+      <A HREF="#``Spacecraft Velocity'' Hints">``Spacecraft Velocity'' Hints</A>
+      <A HREF="#``Spacecraft Velocity'' Solution Steps">``Spacecraft Velocity'' Solution Steps</A>
+      <A HREF="#``Spacecraft Velocity'' Code Program ``spice_example.pro'':">``Spacecraft Velocity'' Code Program ``spice_example.pro'':</A>
+
+</PRE>
+
+<HR SIZE=3 NOSHADE>
+
+<BR><BR>
+<A NAME="In-situ Sensing Hands-On Lesson (IDL)"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H1> In-situ Sensing Hands-On Lesson (IDL)
+</H1><HR SIZE=3 NOSHADE><P><BR><BR><BR>
+   May 11, 2009
+<P>
+ 
+<BR><BR>
+<A NAME="Overview"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> Overview
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   In this lesson you will develop a simple program illustrating how SPICE
+   can be used to compute various kinds of geometry information applicable
+   to the experiments carried out by an in-situ instrument flown on an
+   interplanetary spacecraft.
+<P>
+ 
+<BR><BR>
+<A NAME="Note About HTML Links"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> Note About HTML Links
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   The HTML version of this lesson contains links pointing to various HTML
+   documents provided with the Toolkit. All of these links are relative
+   and, in order to function, require this document to be in a certain
+   location in the Toolkit HTML documentation directory tree.
+<P>
+ 
+   In order for the links to be resolved, create a subdirectory called
+   ``lessons'' under the ``doc/html'' directory of the Toolkit tree and
+   copy this document to that subdirectory before loading it into a Web
+   browser.
+<P>
+ 
+<BR><BR>
+<A NAME="References"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> References
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   This section lists SPICE documents referred to in this lesson.
+<P>
+ 
+   Of these documents, the ``Tutorials'' contains the highest level
+   descriptions with the least number of details while the ``Required
+   Reading'' documents contain much more detailed specifications. The most
+   complete specifications are provided in the ``Headers'' -- the comments
+   in the top section of the source file.
+<P>
+ 
+   In some cases the lesson explanations also refer to the information
+   provided in the meta-data area of the kernels used in the lesson
+   examples. It is especially true in case of the FK and IK files, which
+   often contain comprehensive descriptions of the frames, instrument FOVs,
+   etc. Since both FK and IK are text kernels, the information provided in
+   them can be viewed using any text editor, while the meta information
+   provided in binary kernels -- SPKs and CKs -- can be viewed using
+   ``commnt'' or ``spacit'' utility programs located in ``icy/exe'' of
+   Toolkit installation tree.
+<P>
+ 
+<BR><BR>
+<A NAME="Tutorials"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H3> Tutorials
+</H3><P><BR><BR>
+   The following SPICE tutorials are referenced in this lesson:
+<P>
+ 
+<PRE>
+   Name             Lesson steps/routines that it describes
+   ---------------  -----------------------------------------
+   Time             UTC to ET and SCLK to ET
+   Loading Kernels  Loading SPICE kernels
+   SCLK             SCLK to ET time conversion
+   SPK              Computing positions and velocities
+   Frames           Computing transformations between frames
+</PRE>
+   These tutorials are available in printed form and as MS Office or PDF
+   files from NAIF server at JPL:
+<P>
+ 
+<PRE>
+   http://naif.jpl.nasa.gov/naif/tutorials.html
+</PRE>
+<BR><BR>
+<A NAME="Required Reading Documents"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H3> Required Reading Documents
+</H3><P><BR><BR>
+   The Toolkit includes a set of Required Reading documents. You find these
+   documents in the documentation directory, ``icy/doc'', directory of the
+   Toolkit installation trees.
+<P>
+ 
+<PRE>
+   Name             Lesson steps/routines that it describes
+   ---------------  -----------------------------------------
+   <a href="../req/time.html">time.req</a>         UTC to ET time conversion
+   <a href="../req/kernel.html">kernel.req</a>       Loading SPICE kernels
+   <a href="../req/sclk.html">sclk.req</a>         SCLK to ET time conversion
+   <a href="../req/naif_ids.html">naif_ids.req</a>     Body and reference frame names
+   <a href="../req/spk.html">spk.req</a>          Computing positions and velocities
+</PRE>
+   Another very useful document, also distributed with the Toolkit, is
+   ``Permuted Index'', called ``spicelib.idx'' for FORTRAN or
+   ``cspice.idx'' for C, IDL, and MATLAB also found in the ``doc''
+   directory.
+<P>
+ 
+   This text document provides an easy way to find what SPICE routine(s)
+   performs a particular function of interest and the name of the source
+   file that contains this function (this is especially useful for FORTRAN
+   because some of the routines are entry points and, therefore, their name
+   is different from the name of the source file in which they are
+   located.)
+<P>
+ 
+<BR><BR>
+<A NAME="Icy API Documentation"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H3> Icy API Documentation
+</H3><P><BR><BR>
+   An Icy routine's specification is found in the API documentation page
+   located under ``icy/doc/html/icy''.
+<P>
+ 
+   For example, the document
+<P>
+ 
+<PRE>
+   icy/doc/html/icy/<a href="../icy/cspice_str2et.html">cspice_str2et</a>.html
+</PRE>
+   describes the <a href="../icy/cspice_str2et.html">cspice_str2et</a> routine.
+<P>
+ 
+<BR><BR>
+<A NAME="Kernels Used"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> Kernels Used
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   The kernels used in this lessons:
+<P>
+ 
+<PRE>
+   File Name                 Type Description
+   ------------------------- ---- --------------------------
+   naif0008.tls              LSK  Generic LSK
+   cpck05Mar2004.tpc         PCK  Cassini project PCK
+   cas00084.tsc              SCLK Cassini SCLK
+   020514_SE_SAT105.bsp      SPK  Saturnian Satellite Ephemeris SPK
+   030201AP_SK_SM546_T45.bsp SPK  Cassini Spacecraft SPK
+   981005_PLTEPH-DE405S.bsp  SPK  Planetary Ephemeris SPK
+   sat128.bsp                SPK  Saturnian Satellite Ephemeris SPK
+   04135_04171pc_psiv2.bc    CK   Cassini Spacecraft CK
+   cas_v37.tf                FK   Cassini FK
+</PRE>
+   These SPICE kernels are included in the lesson package available from
+   the NAIF server at JPL:
+<P>
+ 
+<PRE>
+   ftp://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Lessons/
+</PRE>
+<BR><BR>
+<A NAME="Icy Routines Used"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> Icy Routines Used
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   The Icy routines demonstrated in the lesson:
+<P>
+ 
+<PRE>
+   Name             Function that it performs
+   ----------       ----------------------------------------------
+   <a href="../icy/cspice_furnsh.html">cspice_furnsh</a>    Loads kernels, individually or listed in
+                    meta-kernel
+   <a href="../icy/cspice_str2et.html">cspice_str2et</a>    Converts UTC to ET
+   <a href="../icy/cspice_scs2e.html">cspice_scs2e</a>     Converts SCLK to ET
+   <a href="../icy/cspice_spkezr.html">cspice_spkezr</a>    Computes states (position &amp; velocity)
+   <a href="../icy/cspice_spkpos.html">cspice_spkpos</a>    Computes positions
+   <a href="../icy/cspice_vhat.html">cspice_vhat</a>      Find unit vector along a 3d vector
+   <a href="../icy/cspice_subpnt.html">cspice_subpnt</a>    Computes body-fixed coordinates of sub-observer
+                    point
+   <a href="../icy/cspice_reclat.html">cspice_reclat</a>    Converts rectangular coordinated to latitudinal
+   <a href="../icy/cspice_vsub.html">cspice_vsub</a>      Subtracts 3d vectors
+   <a href="../icy/cspice_pxform.html">cspice_pxform</a>    Computes 3x3 matrix rotating vectors between
+                    frames
+   <a href="../icy/cspice_mxv.html">cspice_mxv</a>       Multiplies 3d vector by 3x3 matrix
+</PRE>
+<BR><BR>
+<A NAME="Step-1: ``UTC to ET''"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H1> Step-1: ``UTC to ET''
+</H1><HR SIZE=3 NOSHADE><P><BR><BR><BR>
+<BR><BR>
+<A NAME="``UTC to ET'' Task Statement"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``UTC to ET'' Task Statement
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Write a program that computes and prints the Ephemeris Time (ET)
+   corresponding to ``2004-06-11T19:32:00'' UTC, as the number of ephemeris
+   seconds past J2000, .
+<P>
+ 
+<BR><BR>
+<A NAME="``UTC to ET'' Hints"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``UTC to ET'' Hints
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Find out what SPICE kernel(s) is(are) needed to support this conversion.
+   Reference the ``<a href="../req/time.html">time.req</a>'' and/or ``Time'' tutorial.
+<P>
+ 
+   Find necessary kernel(s) on the NAIF's FTP site.
+<P>
+ 
+   Find out what routine should be called to load necessary kernel(s).
+   Reference the ``<a href="../req/kernel.html">kernel.req</a>'' and/or ``Loading Kernels'' tutorial.
+<P>
+ 
+   Find the ``loader'' routine calling sequence specification. Look at the
+   ``<a href="../req/time.html">time.req</a>'' and that routine's source code header. This routine may be
+   an entry point, in which case there will be no source file with the same
+   name. To find out in which source file this entry point is, search for
+   its name in the ``Permuted Index''.
+<P>
+ 
+   Find the routine(s) used to convert time between UTC and ET. Look at the
+   ``<a href="../req/time.html">time.req</a>'' and/or ``Time'' tutorial.
+<P>
+ 
+   Find the ``converter'' routine(s) calling sequence specification. Look
+   in the ``<a href="../req/time.html">time.req</a>'' and the routine's source code header.
+<P>
+ 
+   Put all calls together in a program, add variable declarations (the
+   routine header's ``Declarations'' and ``Examples'' sections are a good
+   place to look for declaration specification and examples) and output
+   print statements. Compile it and link it against Icy.
+<P>
+ 
+<BR><BR>
+<A NAME="``UTC to ET'' Solution Steps"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``UTC to ET'' Solution Steps
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Only one kernel file is needed to support this conversion -- an LSK file
+   ``naif0008.tls''.
+<P>
+ 
+   As any other SPICE kernel this file can be loaded by the <a href="../icy/cspice_furnsh.html">cspice_furnsh</a>
+   routine. For that, the name of the file can put be provided as a sole
+   argument of this routine:
+<P>
+ 
+<PRE>
+   ...
+   lskfle =  'naif0008.tls'
+ 
+   <a href="../icy/cspice_furnsh.html">cspice_furnsh</a>, lskfle
+</PRE>
+   or it can be listed in a meta-kernel:
+<P>
+ 
+<PRE>
+   \begindata
+      KERNELS_TO_LOAD = (
+                        'kernels/lsk/naif0008.tls'
+                        )
+   \begintext
+</PRE>
+   the name of which, let's call it ``spice_example.tm'', can be then
+   provided as a sole argument of the <a href="../icy/cspice_furnsh.html">cspice_furnsh</a> routine:
+<P>
+ 
+<PRE>
+      ...
+      mkfile  =  'spice_example.tm'
+      <a href="../icy/cspice_furnsh.html">cspice_furnsh</a>, mkfile
+</PRE>
+   While the second option seems to involve a bit more work -- it requires
+   making an extra file -- it is a much better way to go if you plan to
+   load more kernels as you extend the program. With the meta-kernel
+   approach simply adding more kernels to the list in KERNEL_TO_LOAD
+   without changing the program code will accomplish that.
+<P>
+ 
+   The highest level Icy time routine converting UTC to ET is <a href="../icy/cspice_str2et.html">cspice_str2et</a>
+   (``icy/doc/html/icy/<a href="../icy/cspice_str2et.html">cspice_str2et</a>.html'').
+<P>
+ 
+   It has two arguments -- input time string representing UTC in a variety
+   of formats (see <a href="../icy/cspice_str2et.html">cspice_str2et</a> header's section ``Particulars'' for the
+   complete description of input time formats) and output DP number of ET
+   seconds past J2000. A call to <a href="../icy/cspice_str2et.html">cspice_str2et</a> converting a given UTC to ET
+   could look like this:
+<P>
+ 
+<PRE>
+      ...
+      utc     =  '2004-06-11T19:32:00'
+      <a href="../icy/cspice_str2et.html">cspice_str2et</a>, utc, et
+</PRE>
+   By combining <a href="../icy/cspice_furnsh.html">cspice_furnsh</a> and <a href="../icy/cspice_str2et.html">cspice_str2et</a> calls and required
+   declarations and by adding a simple print statement, one would get a
+   complete program that prints ET for the given UTC epoch.
+<P>
+ 
+   The program's source code then needs to be compiled and linked against
+   Icy. Assuming that the program was saved in a file called
+<P>
+ 
+   "spice_example.pro", this can be done with the following IDL command
+<P>
+ 
+<PRE>
+   $ idl
+ 
+   IDL&gt; .compile spice_example.pro
+</PRE>
+   The command assumes that the library file(s) ``icy.so'' and the IDL dlm
+   file ``icy.dlm'' are located in current directory, which may not be the
+   case.
+<P>
+ 
+   When you run the compiled script, ``spice_example'', it produces the
+   following output (the output below was generated by this script on OS X;
+   your output may differ slightly in its format and numeric precision):
+<P>
+ 
+<PRE>
+   IDL &gt; spice_example
+   utc  = 2004-06-11T19:32:00
+   et   =     140254384.184625
+   IDL &gt;
+</PRE>
+<BR><BR>
+<A NAME="``UTC to ET'' Code"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``UTC to ET'' Code
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Program ``spice_example.pro'':
+<P>
+ 
+<PRE>
+   PRO spice_example
+ 
+      mkfile  =  'spice_example.tm'
+      <a href="../icy/cspice_furnsh.html">cspice_furnsh</a>, mkfile
+ 
+      utc     =  '2004-06-11T19:32:00'
+      <a href="../icy/cspice_str2et.html">cspice_str2et</a>, utc, et
+ 
+      print,                      "utc  = ", utc
+      print, FORMAT='(A7,F20.6)', "et   = ", et
+ 
+      <a href="../icy/cspice_unload.html">cspice_unload</a>, mkfile
+ 
+   END
+</PRE>
+   Meta-kernel file ``spice_example.tm'':
+<P>
+ 
+<PRE>
+   \begindata
+      KERNELS_TO_LOAD = (
+                        'kernels/lsk/naif0008.tls'
+                        )
+   \begintext
+</PRE>
+<BR><BR>
+<A NAME="Step-2: ``SCLK to ET''"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H1> Step-2: ``SCLK to ET''
+</H1><HR SIZE=3 NOSHADE><P><BR><BR><BR>
+<BR><BR>
+<A NAME="``SCLK to ET'' Task Statement"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``SCLK to ET'' Task Statement
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Extend the program from Step-1 to compute and print ET for the following
+   CASSINI on-board clock epoch ``1465674964.105''.
+<P>
+ 
+<BR><BR>
+<A NAME="``SCLK to ET'' Hints"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``SCLK to ET'' Hints
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Find out what additional (to those already loaded in Step-1) SPICE
+   kernel(s) is(are) needed to support SCLK to ET conversion. Look at the
+   ``<a href="../req/sclk.html">sclk.req</a>'' and/or ``SCLK'' tutorial.
+<P>
+ 
+   Find necessary kernel(s) on the NAIF's FTP site.
+<P>
+ 
+   Modify the program or meta-kernel to load this(these) kernels.
+<P>
+ 
+   Find the routine(s) needed to convert time between SCLK and ET. Look at
+   the ``<a href="../req/sclk.html">sclk.req</a>'' and/or ``Time'' and ``SCLK'' tutorials.
+<P>
+ 
+   Find the ``converter'' routine's calling sequence specification. Look in
+   the ``<a href="../req/sclk.html">sclk.req</a>'' and the routine's source code header.
+<P>
+ 
+   Look at ``<a href="../req/naif_ids.html">naif_ids.req</a>'' and the comments in the additional kernel(s)
+   that you have loaded for information on proper values of input arguments
+   of this routine.
+<P>
+ 
+   Add calls to the ``converter'' routine(s), necessary variable
+   declarations (the routine header's ``Declarations'' and ``Examples''
+   sections are a good place to look for declaration specification and
+   examples), and output print statements to the program. Re-compile and
+   re-link it against Icy.
+<P>
+ 
+<BR><BR>
+<A NAME="``SCLK to ET'' Solution Steps"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``SCLK to ET'' Solution Steps
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   A CASSINI SCLK file is needed additionally to the LSK file loaded in the
+   Step-1 to support this conversion.
+<P>
+ 
+   No code change is needed in the loading portion of the program if a
+   meta-kernel approach was used in the Step-1. The program will load the
+   file if it will be added to the list of kernels in the KERNELS_TO_LOAD
+   variable:
+<P>
+ 
+<PRE>
+   \begindata
+      KERNELS_TO_LOAD = (
+                        'kernels/lsk/naif0008.tls'
+                        'kernels/sclk/cas00084.tsc'
+                        )
+   \begintext
+</PRE>
+   The highest level Icy routine converting SCLK to ET is <a href="../icy/cspice_scs2e.html">cspice_scs2e</a>
+   (``icy/doc/html/icy/<a href="../icy/cspice_scs2e.html">cspice_scs2e</a>.html'').
+<P>
+ 
+   It has three arguments -- NAIF ID for CASSINI s/c (-82 as described by
+   ``<a href="../req/naif_ids.html">naif_ids.req</a>'' document), input time string representing CASSINI SCLK,
+   and output DP number of ET seconds past J2000. A call to <a href="../icy/cspice_str2et.html">cspice_str2et</a>
+   converting given SCLK to ET could look like this:
+<P>
+ 
+<PRE>
+   scid   = -82
+   sclk   = '1465674964.105'
+   ...
+   <a href="../icy/cspice_scs2e.html">cspice_scs2e</a>, scid, sclk, et
+</PRE>
+   By adding the <a href="../icy/cspice_scs2e.html">cspice_scs2e</a> call, required declarations and a simple
+   print statement, one would get a complete program that prints ET for the
+   given SCLK epoch.
+<P>
+ 
+   The program's source code then needs to be re-compiled and re-linked
+   against Icy. It can be done using the same compile command as in Step-1:
+<P>
+ 
+<PRE>
+   $ idl
+ 
+   IDL&gt; .compile spice_example.pro
+</PRE>
+   When you run the compiled script, ``spice_example'', it produces the
+   following output (the output below was generated by this script on OS X;
+   your output may differ slightly in its format and numeric precision):
+<P>
+ 
+<PRE>
+   IDL &gt; spice_example
+   utc  = 2004-06-11T19:32:00
+   et   =     140254384.184625
+   sclk = 1465674964.105
+   et   =     140254384.183426
+   IDL &gt;
+</PRE>
+<BR><BR>
+<A NAME="``SCLK to ET'' Code"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``SCLK to ET'' Code
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Program ``spice_example.pro'':
+<P>
+ 
+<PRE>
+   PRO spice_example
+ 
+      mkfile  =  'spice_example.tm'
+      <a href="../icy/cspice_furnsh.html">cspice_furnsh</a>, mkfile
+ 
+      utc     =  '2004-06-11T19:32:00'
+      <a href="../icy/cspice_str2et.html">cspice_str2et</a>, utc, et
+ 
+      print,                      "utc  = ", utc
+      print, FORMAT='(A7,F20.6)', "et   = ", et
+ 
+      scid   = -82
+      sclk   = '1465674964.105'
+      <a href="../icy/cspice_scs2e.html">cspice_scs2e</a>, scid, sclk, et
+ 
+      print,                      "sclk = ", sclk
+      print, FORMAT='(A7,F20.6)', "et   = ", et
+ 
+      <a href="../icy/cspice_unload.html">cspice_unload</a>, mkfile
+ 
+   END
+</PRE>
+   Meta-kernel file ``spice_example.tm'':
+<P>
+ 
+<PRE>
+   \begindata
+      KERNELS_TO_LOAD = (
+                        'kernels/lsk/naif0008.tls'
+                        'kernels/sclk/cas00084.tsc'
+                        )
+   \begintext
+</PRE>
+<BR><BR>
+<A NAME="Step-3: ``Spacecraft State''"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H1> Step-3: ``Spacecraft State''
+</H1><HR SIZE=3 NOSHADE><P><BR><BR><BR>
+<BR><BR>
+<A NAME="``Spacecraft State'' Task Statement"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Spacecraft State'' Task Statement
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Extend the program from Step-2 to compute geometric state -- position
+   and velocity -- of the CASSINI spacecraft with respect to the Sun in the
+   Ecliptic frame at the epoch specified by SCLK time from Step-2.
+<P>
+ 
+<BR><BR>
+<A NAME="``Spacecraft State'' Hints"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Spacecraft State'' Hints
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Find out what additional (to those already loaded in Steps-1&amp;2)
+   SPICE kernel(s) is(are) needed to support state computation. Look at the
+   ``<a href="../req/spk.html">spk.req</a>'' and/or ``SPK'' tutorial.
+<P>
+ 
+   Find necessary kernel(s) on the NAIF's FTP site.
+<P>
+ 
+   Verify that the kernels contain enough data to compute the state of
+   interest. Use ``brief'' utility program located under ``toolkit/exe''
+   directory for that.
+<P>
+ 
+   Modify the meta-kernel to load this(these) kernels.
+<P>
+ 
+   Determine the routine(s) needed to compute states. Look at the
+   ``<a href="../req/spk.html">spk.req</a>'' and/or ``SPK'' tutorial presentation.
+<P>
+ 
+   Find the the routine(s) calling sequence specification. Look in the
+   ``<a href="../req/spk.html">spk.req</a>'' and the routine's source code header.
+<P>
+ 
+   Reference the ``<a href="../req/naif_ids.html">naif_ids.req</a>'' and ``<a href="../req/frames.html">frames.req</a>'' and the routine(s)
+   header ``Inputs'' and ``Particulars'' sections to determine proper
+   values of the input arguments of this routine.
+<P>
+ 
+   Add calls to the routine(s), necessary variable declarations and output
+   print statements to the program. Re-compile and re-link it against Icy.
+<P>
+ 
+<BR><BR>
+<A NAME="``Spacecraft State'' Solution Steps"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Spacecraft State'' Solution Steps
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   A CASSINI spacecraft trajectory SPK and generic planetary ephemeris SPK
+   files are needed to support computation of the state of interest.
+<P>
+ 
+   The file names can be added to the meta-kernel to get them loaded into
+   the program:
+<P>
+ 
+<PRE>
+   \begindata
+      KERNELS_TO_LOAD = (
+                        'kernels/lsk/naif0008.tls'
+                        'kernels/sclk/cas00084.tsc'
+                        'kernels/spk/020514_SE_SAT105.bsp'
+                        'kernels/spk/030201AP_SK_SM546_T45.bsp'
+                        'kernels/spk/981005_PLTEPH-DE405S.bsp'
+                        'kernels/spk/sat128.bsp'
+                        )
+   \begintext
+</PRE>
+   The highest level Icy routine computing states is <a href="../icy/cspice_spkezr.html">cspice_spkezr</a>
+   (``icy/doc/html/icy/<a href="../icy/cspice_spkezr.html">cspice_spkezr</a>.html'').
+<P>
+ 
+   We are interested in computing CASSINI position and velocity with
+   respect to the Sun, therefore the target and observer names should be
+   set to 'CASSINI' and 'Sun' (both names can be found in
+   ``<a href="../req/naif_ids.html">naif_ids.req</a>'').
+<P>
+ 
+   The state should be in ecliptic frame, therefore the name of the frame
+   in which the state should be computed is 'ECLIPJ2000' (see
+   ``<a href="../req/frames.html">frames.req</a>'' document.)
+<P>
+ 
+   Since we need only the geometric position, the `abcorr' argument of the
+   routine should be set to 'NONE' (see aberration correction discussion in
+   the (``icy/src/cspice/spkezr_c.c''). header).
+<P>
+ 
+   Putting it all together, we get:
+<P>
+ 
+<PRE>
+   target = 'CASSINI'
+   frame  = 'ECLIPJ2000'
+   corrtn = 'NONE'
+   observ = 'SUN'
+ 
+   <a href="../icy/cspice_spkezr.html">cspice_spkezr</a>, target, et, frame, corrtn, observ, state, ltime
+</PRE>
+   The updated program with added calls, required declarations and simple
+   print statements produces the following output (the output below was
+   generated by this script on OS X; your output may differ slightly in its
+   format and numeric precision):
+<P>
+ 
+<PRE>
+   IDL&gt; spice_example
+   utc  = 2004-06-11T19:32:00
+   et   =     140254384.184625
+   sclk = 1465674964.105
+   et   =     140254384.183426
+   state =   -3.7659906e+08   1.2944878e+09      -7064853.1
+         -5.1642262   0.80171891     0.040603057
+   IDL &gt;
+</PRE>
+<BR><BR>
+<A NAME="``Spacecraft State'' Code"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Spacecraft State'' Code
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Program
+<P>
+ 
+<PRE>
+   PRO spice_example
+ 
+      mkfile  =  'spice_example.tm'
+      <a href="../icy/cspice_furnsh.html">cspice_furnsh</a>, mkfile
+ 
+      utc     =  '2004-06-11T19:32:00'
+      <a href="../icy/cspice_str2et.html">cspice_str2et</a>, utc, et
+ 
+      print,                      "utc  = ", utc
+      print, FORMAT='(A7,F20.6)', "et   = ", et
+ 
+      scid   = -82
+      sclk   = '1465674964.105'
+      <a href="../icy/cspice_scs2e.html">cspice_scs2e</a>, scid, sclk, et
+ 
+      print,                      "sclk = ", sclk
+      print, FORMAT='(A7,F20.6)', "et   = ", et
+ 
+      target = 'CASSINI'
+      frame  = 'ECLIPJ2000'
+      corrtn = 'NONE'
+      observ = 'SUN'
+ 
+      <a href="../icy/cspice_spkezr.html">cspice_spkezr</a>, target, et, frame, corrtn, observ, state, ltime
+ 
+      print, 'state = ', state
+ 
+      <a href="../icy/cspice_unload.html">cspice_unload</a>, mkfile
+ 
+   END
+</PRE>
+   Meta-kernel file ``spice_example.tm'':
+<P>
+ 
+<PRE>
+   \begindata
+      KERNELS_TO_LOAD = (
+                        'kernels/lsk/naif0008.tls'
+                        'kernels/sclk/cas00084.tsc'
+                        'kernels/spk/020514_SE_SAT105.bsp'
+                        'kernels/spk/030201AP_SK_SM546_T45.bsp'
+                        'kernels/spk/981005_PLTEPH-DE405S.bsp'
+                        'kernels/spk/sat128.bsp'
+                        )
+   \begintext
+</PRE>
+<BR><BR>
+<A NAME="Step-4: ``Sun Direction''"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H1> Step-4: ``Sun Direction''
+</H1><HR SIZE=3 NOSHADE><P><BR><BR><BR>
+<BR><BR>
+<A NAME="``Sun Direction'' Task Statement"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Sun Direction'' Task Statement
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Extend the program from Step-3 to compute apparent direction of the Sun
+   in the INMS frame at the epoch specified by SCLK time from Step-2.
+<P>
+ 
+<BR><BR>
+<A NAME="``Sun Direction'' Hints"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Sun Direction'' Hints
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Determine the additional SPICE kernels needed to support the direction
+   computation, knowing that they should provide the s/c and instrument
+   frame orientation. Retrieve these kernels from the NAIF's FTP site.
+<P>
+ 
+   Verify that the orientation data in the kernels have adequate coverage
+   to support computation of the direction of interest. Use ``ckbrief''
+   utility program located under ``toolkit/exe'' directory for that.
+<P>
+ 
+   Modify the meta-kernel to load this(these) kernels.
+<P>
+ 
+   Determine the proper input arguments for the <a href="../icy/cspice_spkpos.html">cspice_spkpos</a> call to
+   calculate the direction (which is the position portion of the output
+   state). Look through the Frames Kernel find the name of the frame to
+   used.
+<P>
+ 
+   Add calls to the routine(s), necessary variable declarations and output
+   print statements to the program. Re-compile and re-link it against Icy.
+<P>
+ 
+<BR><BR>
+<A NAME="``Sun Direction'' Solution Steps"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Sun Direction'' Solution Steps
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   A CASSINI spacecraft orientation CK file, providing s/c orientation with
+   respect to an inertial frame, and CASSINI FK file, providing orientation
+   of the INMS frame with respect to the s/ frame, are needed additionally
+   to already loaded kernels to support computation of this direction.
+<P>
+ 
+   The file names can be added to the meta-kernel to get them loaded into
+   the program:
+<P>
+ 
+<PRE>
+   \begindata
+      KERNELS_TO_LOAD = (
+                        'kernels/lsk/naif0008.tls'
+                        'kernels/sclk/cas00084.tsc'
+                        'kernels/spk/020514_SE_SAT105.bsp'
+                        'kernels/spk/030201AP_SK_SM546_T45.bsp'
+                        'kernels/spk/981005_PLTEPH-DE405S.bsp'
+                        'kernels/spk/sat128.bsp'
+                        'kernels/ck/04135_04171pc_psiv2.bc'
+                        'kernels/fk/cas_v37.tf'
+                        )
+   \begintext
+</PRE>
+   The same highest level Icy routine computing positions, <a href="../icy/cspice_spkpos.html">cspice_spkpos</a>,
+   can be used to compute this direction.
+<P>
+ 
+   Since this is the direction of the Sun as seen from the s/c, the target
+   argument should be set to 'Sun' and the observer argument should be set
+   to 'CASSINI'. The name of the INMS frame is 'CASSINI_INMS', the
+   definition and description of this frame are provided in the CASSINI FK
+   file, ``cassini_v02.tf''.
+<P>
+ 
+   Since the apparent, or ``as seen'', position is sought for, the `abcorr'
+   argument of the routine should be set to 'LT+S' (see aberration
+   correction discussion in the (``icy/src/cspice/spkpos_c.c'') header).
+<P>
+ 
+   If desired, the position can then be turned into a unit vector using
+   <a href="../icy/cspice_vhat.html">cspice_vhat</a> routine (``icy/doc/html/icy/cspice_vhat.html''). Putting it
+   all together, we get:
+<P>
+ 
+<PRE>
+   ...
+   target = 'SUN'
+   frame  = 'CASSINI_INMS'
+   corrtn = 'LT+S'
+   observ = 'CASSINI'
+ 
+   <a href="../icy/cspice_spkpos.html">cspice_spkpos</a>, target, et, frame, corrtn, observ, sundir, ltime
+   <a href="../icy/cspice_vhat.html">cspice_vhat</a>, sundir, sundir
+</PRE>
+   The updated program with added calls, required declarations and simple
+   print statements produces the following output (the output below was
+   generated by this script on OS X; your output may differ slightly in its
+   format and numeric precision):
+<P>
+ 
+<PRE>
+   IDL&gt; spice_example
+   utc  = 2004-06-11T19:32:00
+   et   =     140254384.184625
+   sclk = 1465674964.105
+   et   =     140254384.183426
+   state =   -3.7659906e+08   1.2944878e+09      -7064853.1
+         -5.1642262   0.80171891     0.040603057
+   sundir =      -0.29020402      0.88163119      0.37216673
+   IDL &gt;
+</PRE>
+<BR><BR>
+<A NAME="``Sun Direction'' Code"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Sun Direction'' Code
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Program ``spice_example.pro'':
+<P>
+ 
+<PRE>
+   PRO spice_example
+ 
+      mkfile  =  'spice_example.tm'
+      <a href="../icy/cspice_furnsh.html">cspice_furnsh</a>, mkfile
+ 
+      utc     =  '2004-06-11T19:32:00'
+      <a href="../icy/cspice_str2et.html">cspice_str2et</a>, utc, et
+ 
+      print,                      "utc  = ", utc
+      print, FORMAT='(A7,F20.6)', "et   = ", et
+ 
+      scid   = -82
+      sclk   = '1465674964.105'
+      <a href="../icy/cspice_scs2e.html">cspice_scs2e</a>, scid, sclk, et
+ 
+      print,                      "sclk = ", sclk
+      print, FORMAT='(A7,F20.6)', "et   = ", et
+ 
+      target = 'CASSINI'
+      frame  = 'ECLIPJ2000'
+      corrtn = 'NONE'
+      observ = 'SUN'
+ 
+      <a href="../icy/cspice_spkezr.html">cspice_spkezr</a>, target, et, frame, corrtn, observ, state, ltime
+ 
+      print, "state = ", state
+ 
+      target = 'SUN'
+      frame  = 'CASSINI_INMS'
+      corrtn = 'LT+S'
+      observ = 'CASSINI'
+ 
+      <a href="../icy/cspice_spkpos.html">cspice_spkpos</a>, target, et, frame, corrtn, observ, sundir, ltime
+      <a href="../icy/cspice_vhat.html">cspice_vhat</a>, sundir, sundir
+ 
+      print, "sundir = ", sundir
+ 
+      <a href="../icy/cspice_unload.html">cspice_unload</a>, mkfile
+ 
+   END
+</PRE>
+   Meta-kernel file ``spice_example.tm'':
+<P>
+ 
+<PRE>
+   \begindata
+      KERNELS_TO_LOAD = (
+                        'kernels/lsk/naif0008.tls'
+                        'kernels/sclk/cas00084.tsc'
+                        'kernels/spk/020514_SE_SAT105.bsp'
+                        'kernels/spk/030201AP_SK_SM546_T45.bsp'
+                        'kernels/spk/981005_PLTEPH-DE405S.bsp'
+                        'kernels/spk/sat128.bsp'
+                        'kernels/ck/04135_04171pc_psiv2.bc'
+                        'kernels/fk/cas_v37.tf'
+                        )
+   \begintext
+</PRE>
+<BR><BR>
+<A NAME="Step-5: ``Sub-Spacecraft Point''"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H1> Step-5: ``Sub-Spacecraft Point''
+</H1><HR SIZE=3 NOSHADE><P><BR><BR><BR>
+<BR><BR>
+<A NAME="``Sub-Spacecraft Point'' Task Statement"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Sub-Spacecraft Point'' Task Statement
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Extend the program from Step-4 to compute planetocentric longitude and
+   and latitude of the sub-spacecraft point on Phoebe, and the direction
+   from the spacecraft to that point in the INMS frame.
+<P>
+ 
+<BR><BR>
+<A NAME="``Sub-Spacecraft Point'' Hints"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Sub-Spacecraft Point'' Hints
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Find the Icy routine that computes sub-observer point coordinates. Use
+   ``Most Used Icy APIs'' or ``subpt'' cookbook program for that.
+<P>
+ 
+   Refer to the routine's header to determine the additional kernels needed
+   for this direction computation. Get these kernels from the NAIF's FTP
+   site. Modify the meta-kernel to load this(these) kernels.
+<P>
+ 
+   Determine the proper input arguments for the routine. Refer to the
+   routine's header for that information.
+<P>
+ 
+   Convert the surface point Cartesian vector returned by this routine to
+   latitudinal coordinates. Use ``Permuted Index'' to find the routine that
+   does this conversion. Refer to the routine's header for input/output
+   argument specifications.
+<P>
+ 
+   Since the Cartesian vector from the spacecraft to the sub-spacecraft
+   point is computed in the Phoebe body-fixed frame, it should be
+   transformed into the instrument frame get the direction we are looking
+   for. Refer to ``<a href="../req/frames.html">frames.req</a>'' and/or ``Frames'' tutorial to determine the
+   name of the routine computing transformations and use it to compute
+   transformation from Phoebe body-fixed to the INMS frame.
+<P>
+ 
+   Using ``Permuted Index'' find the routine that multiplies 3x3 matrix by
+   3d vector and use it to rotate the vector to the instrument frame.
+<P>
+ 
+   Add calls to the routine(s), necessary variable declarations and output
+   print statements to the program.
+<P>
+ 
+<BR><BR>
+<A NAME="``Sub-Spacecraft Point'' Solution Steps"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Sub-Spacecraft Point'' Solution Steps
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   The <a href="../icy/cspice_subpnt.html">cspice_subpnt</a> routine (``icy/doc/html/icy/cspice_subpnt.html'') can
+   be used to compute the sub-observer point and the vector from the
+   observer to that point with a single call. To determine this point as
+   the closest point on the Phoebe ellipsoid, the `method' argument has to
+   be set to 'NEAR POINT: ELLIPSOID'. For our case the `target' is
+   'PHOEBE', the target body-fixed frame is 'IAU_PHOEBE', and the observer
+   is 'CASSINI'.
+<P>
+ 
+   Since the s/c is close to Phoebe, light time does not need to be taken
+   into account and, therefore, the `abcorr' argument can be set to 'NONE'.
+<P>
+ 
+   In order for <a href="../icy/cspice_subpnt.html">cspice_subpnt</a> to compute the nearest point location, a PCK
+   file containing Phoebe radii has to be loaded into the program (see
+   ``Files'' section of the routine's header.) All other files required for
+   this computation are already being loaded by the program. With PCK file
+   name added to it, the updated meta-kernel will look like this:
+<P>
+ 
+<PRE>
+   \begindata
+      KERNELS_TO_LOAD = (
+                        'kernels/lsk/naif0008.tls'
+                        'kernels/sclk/cas00084.tsc'
+                        'kernels/spk/020514_SE_SAT105.bsp'
+                        'kernels/spk/030201AP_SK_SM546_T45.bsp'
+                        'kernels/spk/981005_PLTEPH-DE405S.bsp'
+                        'kernels/spk/sat128.bsp'
+                        'kernels/ck/04135_04171pc_psiv2.bc'
+                        'kernels/fk/cas_v37.tf'
+                        'kernels/pck/cpck05Mar2004.tpc'
+                        )
+   \begintext
+</PRE>
+   The sub-spacecraft point Cartesian vector can be converted to
+   planetocentric radius, longitude and latitude using the <a href="../icy/cspice_reclat.html">cspice_reclat</a>
+   routine (``icy/doc/html/icy/<a href="../icy/cspice_reclat.html">cspice_reclat</a>.html'').
+<P>
+ 
+   The vector from the spacecraft to the sub-spacecraft point returned by
+   <a href="../icy/cspice_subpnt.html">cspice_subpnt</a> has to be rotated from the body-fixed frame to the
+   instrument frame. The name of the routine that computes 3x3 matrices
+   rotating vectors from one frame to another is <a href="../icy/cspice_pxform.html">cspice_pxform</a>
+   (``icy/doc/html/icy/<a href="../icy/cspice_pxform.html">cspice_pxform</a>.html''). In our case the `from'
+   argument should be set to 'IAU_PHOEBE' and the `to' argument should be
+   set to 'CASSINI_INMS'
+<P>
+ 
+   The vector should be then multiplied by this matrix to rotate it to the
+   instrument frame. The <a href="../icy/cspice_mxv.html">cspice_mxv</a> routine performs that function
+   (``icy/doc/html/icy/<a href="../icy/cspice_mxv.html">cspice_mxv</a>.html'')
+<P>
+ 
+   After applying the rotation, normalize the resultant vector using the
+   <a href="../icy/cspice_vhat.html">cspice_vhat</a> routine.
+<P>
+ 
+   For output the longitude and latitude angles returned by <a href="../icy/cspice_reclat.html">cspice_reclat</a>
+   in radians can be converted to degrees by multiplying by <a href="../icy/cspice_dpr.html">cspice_dpr</a>
+   function (``icy/doc/html/icy/<a href="../icy/cspice_dpr.html">cspice_dpr</a>.html''). Putting it all
+   together, we get:
+<P>
+ 
+<PRE>
+   method = 'NEAR POINT: ELLIPSOID'
+   target = 'PHOEBE'
+   frame  = 'IAU_PHOEBE'
+   corrtn = 'NONE'
+   observ = 'CASSINI'
+ 
+   <a href="../icy/cspice_subpnt.html">cspice_subpnt</a>, method, target, et, frame, corrtn, observ, $
+                                            spoint, trgepc, srfvec
+ 
+   <a href="../icy/cspice_reclat.html">cspice_reclat</a>, spoint, srad, slon, slat
+ 
+   fromfr = 'IAU_PHOEBE'
+   tofr   = 'CASSINI_INMS'
+ 
+   <a href="../icy/cspice_pxform.html">cspice_pxform</a>, fromfr, tofr, et, m2imat
+ 
+   <a href="../icy/cspice_mxv.html">cspice_mxv</a>,  m2imat, srfvec, sbpdir
+   <a href="../icy/cspice_vhat.html">cspice_vhat</a>, sbpdir, sbpdir
+ 
+   print, "lon    =  ", slon * <a href="../icy/cspice_dpr.html">cspice_dpr</a>()
+   print, "lat    =  ", slat * <a href="../icy/cspice_dpr.html">cspice_dpr</a>()
+   print, "sbpdir =  ", sbpdir
+</PRE>
+   The updated program with added calls, required declarations and simple
+   print statements produces the following output (the output below was
+   generated by this script on OS X; your output may differ slightly in its
+   format and numeric precision):
+<P>
+ 
+<PRE>
+   IDL&gt; spice_example
+   utc  = 2004-06-11T19:32:00
+   et   =     140254384.184625
+   sclk = 1465674964.105
+   et   =     140254384.183426
+   state =   -3.7659906e+08   1.2944878e+09      -7064853.1
+         -5.1642262   0.80171891     0.040603057
+   sundir =      -0.29020402      0.88163119      0.37216673
+   lon    =         23.423158
+   lat    =         3.7097972
+   sbpdir =    -0.00077620706     -0.99987320    -0.015905456
+</PRE>
+<BR><BR>
+<A NAME="``Sub-Spacecraft Point'' Code"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Sub-Spacecraft Point'' Code
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Program ``spice_example.pro'':
+<P>
+ 
+<PRE>
+   PRO spice_example
+ 
+      mkfile  =  'spice_example.tm'
+      <a href="../icy/cspice_furnsh.html">cspice_furnsh</a>, mkfile
+ 
+      utc     =  '2004-06-11T19:32:00'
+      <a href="../icy/cspice_str2et.html">cspice_str2et</a>, utc, et
+ 
+      print,                      "utc  = ", utc
+      print, FORMAT='(A7,F20.6)', "et   = ", et
+ 
+      scid   = -82
+      sclk   = '1465674964.105'
+      <a href="../icy/cspice_scs2e.html">cspice_scs2e</a>, scid, sclk, et
+ 
+      print,                      "sclk = ", sclk
+      print, FORMAT='(A7,F20.6)', "et   = ", et
+ 
+      target = 'CASSINI'
+      frame  = 'ECLIPJ2000'
+      corrtn = 'NONE'
+      observ = 'SUN'
+ 
+      <a href="../icy/cspice_spkezr.html">cspice_spkezr</a>, target, et, frame, corrtn, observ, state, ltime
+ 
+      print, "state = ", state
+ 
+      target = 'SUN'
+      frame  = 'CASSINI_INMS'
+      corrtn = 'LT+S'
+      observ = 'CASSINI'
+ 
+      <a href="../icy/cspice_spkpos.html">cspice_spkpos</a>, target, et, frame, corrtn, observ, sundir, ltime
+      <a href="../icy/cspice_vhat.html">cspice_vhat</a>, sundir, sundir
+ 
+      print, "sundir = ", sundir
+ 
+      method = 'NEAR POINT: ELLIPSOID'
+      target = 'PHOEBE'
+      frame  = 'IAU_PHOEBE'
+      corrtn = 'NONE'
+      observ = 'CASSINI'
+ 
+      <a href="../icy/cspice_subpnt.html">cspice_subpnt</a>, method, target, et, frame, corrtn, observ, $
+                                               spoint, trgepc, srfvec
+ 
+      <a href="../icy/cspice_reclat.html">cspice_reclat</a>, spoint, srad, slon, slat
+ 
+      fromfr = 'IAU_PHOEBE'
+      tofr   = 'CASSINI_INMS'
+ 
+      <a href="../icy/cspice_pxform.html">cspice_pxform</a>, fromfr, tofr, et, m2imat
+ 
+      <a href="../icy/cspice_mxv.html">cspice_mxv</a>,  m2imat, srfvec, sbpdir
+      <a href="../icy/cspice_vhat.html">cspice_vhat</a>, sbpdir, sbpdir
+ 
+      print, "lon    =  ", slon * <a href="../icy/cspice_dpr.html">cspice_dpr</a>()
+      print, "lat    =  ", slat * <a href="../icy/cspice_dpr.html">cspice_dpr</a>()
+      print, "sbpdir =  ", sbpdir
+ 
+      <a href="../icy/cspice_unload.html">cspice_unload</a>, mkfile
+ 
+   END
+</PRE>
+   Meta-kernel file ``spice_example.tm'':
+<P>
+ 
+<PRE>
+   \begindata
+      KERNELS_TO_LOAD = (
+                        'kernels/lsk/naif0008.tls'
+                        'kernels/sclk/cas00084.tsc'
+                        'kernels/spk/020514_SE_SAT105.bsp'
+                        'kernels/spk/030201AP_SK_SM546_T45.bsp'
+                        'kernels/spk/981005_PLTEPH-DE405S.bsp'
+                        'kernels/spk/sat128.bsp'
+                        'kernels/ck/04135_04171pc_psiv2.bc'
+                        'kernels/fk/cas_v37.tf'
+                        'kernels/pck/cpck05Mar2004.tpc'
+                        )
+   \begintext
+</PRE>
+<BR><BR>
+<A NAME="Step-6: ``Spacecraft Velocity''"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H1> Step-6: ``Spacecraft Velocity''
+</H1><HR SIZE=3 NOSHADE><P><BR><BR><BR>
+<BR><BR>
+<A NAME="``Spacecraft Velocity'' Task Statement"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Spacecraft Velocity'' Task Statement
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Extend the program from Step-5 to compute the spacecraft velocity with
+   respect to Phoebe in the INMS frame.
+<P>
+ 
+<BR><BR>
+<A NAME="``Spacecraft Velocity'' Hints"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Spacecraft Velocity'' Hints
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   Compute velocity of the spacecraft with respect to Phoebe in some
+   inertial frame, for example J2000. Recall that velocity is the last
+   three components of the state vector returned by <a href="../icy/cspice_spkezr.html">cspice_spkezr</a>.
+<P>
+ 
+   Since the velocity vector is computed in the inertial frame, it should
+   be rotated to the instrument frame. Look at the previous step the
+   routine that compute necessary rotation and rotate vectors.
+<P>
+ 
+   Add calls to the routine(s), necessary variable declarations and output
+   print statements to the program. Re-compile and re-link it against Icy.
+<P>
+ 
+<BR><BR>
+<A NAME="``Spacecraft Velocity'' Solution Steps"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Spacecraft Velocity'' Solution Steps
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+   All kernels required for computations in this step are already being
+   loaded by the program, therefore, the meta-kernel does not need to be
+   changed.
+<P>
+ 
+   The spacecraft velocity vector is the last three components of the state
+   returned by <a href="../icy/cspice_spkezr.html">cspice_spkezr</a>. To compute velocity of CASSINI with respect
+   to Phoebe in the J2000 inertial frame the <a href="../icy/cspice_spkezr.html">cspice_spkezr</a> arguments should
+   be set to 'CASSINI' (TARG), 'PHOEBE' (OBS), 'J2000' (REF) and 'NONE'
+   (ABCORR).
+<P>
+ 
+   The computed velocity vector has to be rotated from the J2000 frame to
+   the instrument frame. The <a href="../icy/cspice_pxform.html">cspice_pxform</a> routine used in the previous
+   step can be used to compute the rotation matrix needed for that. In this
+   case the frame name arguments should be set to 'J2000' (FROM) and
+   'CASSINI_INMS' (TO).
+<P>
+ 
+   As in the previous step the difference vector should be then multiplied
+   by this rotation matrix using the <a href="../icy/cspice_mxv.html">cspice_mxv</a> routine. After applying the
+   rotation, normalize the resultant vector using the <a href="../icy/cspice_vhat.html">cspice_vhat</a> routine.
+<P>
+ 
+   Putting it all together, we get:
+<P>
+ 
+<PRE>
+      target = 'CASSINI'
+      frame  = 'J2000'
+      corrtn = 'NONE'
+      observ = 'PHOEBE'
+ 
+      <a href="../icy/cspice_spkezr.html">cspice_spkezr</a>, target, et, frame, corrtn, observ, state, ltime
+      scvdir = state[3:5]
+ 
+      fromfr = 'J2000'
+      tofr   = 'CASSINI_INMS'
+      <a href="../icy/cspice_pxform.html">cspice_pxform</a>, fromfr, tofr, et, j2imat
+ 
+      <a href="../icy/cspice_mxv.html">cspice_mxv</a>, j2imat, scvdir, scvdir
+      <a href="../icy/cspice_vhat.html">cspice_vhat</a>, scvdir, scvdir
+ 
+      print, "scvdir = ", scvdir[0:2]
+</PRE>
+   The updated program with added calls, required declarations and simple
+   print statements produces the following output (the output below was
+   generated by this script on OS X; your output may differ slightly in its
+   format and numeric precision):
+<P>
+ 
+<PRE>
+   IDL&gt; spice_example
+   utc  = 2004-06-11T19:32:00
+   et   =     140254384.184625
+   sclk = 1465674964.105
+   et   =     140254384.183426
+   state =   -3.7659906e+08   1.2944878e+09      -7064853.1
+         -5.1642262   0.80171891     0.040603057
+   sundir =      -0.29020402      0.88163119      0.37216673
+   lon    =         23.423158
+   lat    =         3.7097972
+   sbpdir =    -0.00077620706     -0.99987320    -0.015905456
+   scvdir =       0.39578487     -0.29280767      0.87041255
+   IDL&gt;
+</PRE>
+   Note that computing the spacecraft velocity in the instrument frame by a
+   single call to <a href="../icy/cspice_spkezr.html">cspice_spkezr</a> by specifying 'CASSINI_INMS' in the `ref'
+   argument returns an incorrect result. Such computation will take into
+   account the spacecraft angular velocity from the CK files, which should
+   not be considered in this case.
+<P>
+ 
+<BR><BR>
+<A NAME="``Spacecraft Velocity'' Code Program ``spice_example.pro'':"></A>
+<p align="right"><a href="#top"><small>Top</small></a></p>
+<H2> ``Spacecraft Velocity'' Code Program ``spice_example.pro'':
+</H2><HR ALIGN="LEFT" WIDTH=50% ><P><BR><BR>
+<PRE>
+   PRO spice_example
+ 
+      mkfile  =  'spice_example.tm'
+      <a href="../icy/cspice_furnsh.html">cspice_furnsh</a>, mkfile
+ 
+      utc     =  '2004-06-11T19:32:00'
+      <a href="../icy/cspice_str2et.html">cspice_str2et</a>, utc, et
+ 
+      print,                      "utc  = ", utc
+      print, FORMAT='(A7,F20.6)', "et   = ", et
+ 
+      scid   = -82
+      sclk   = '1465674964.105'
+      <a href="../icy/cspice_scs2e.html">cspice_scs2e</a>, scid, sclk, et
+ 
+      print,                      "sclk = ", sclk
+      print, FORMAT='(A7,F20.6)', "et   = ", et
+ 
+      target = 'CASSINI'
+      frame  = 'ECLIPJ2000'
+      corrtn = 'NONE'
+      observ = 'SUN'
+ 
+      <a href="../icy/cspice_spkezr.html">cspice_spkezr</a>, target, et, frame, corrtn, observ, state, ltime
+ 
+      print, "state = ", state
+ 
+      target = 'SUN'
+      frame  = 'CASSINI_INMS'
+      corrtn = 'LT+S'
+      observ = 'CASSINI'
+ 
+      <a href="../icy/cspice_spkpos.html">cspice_spkpos</a>, target, et, frame, corrtn, observ, sundir, ltime
+      <a href="../icy/cspice_vhat.html">cspice_vhat</a>, sundir, sundir
+ 
+      print, "sundir = ", sundir
+ 
+      method = 'NEAR POINT: ELLIPSOID'
+      target = 'PHOEBE'
+      frame  = 'IAU_PHOEBE'
+      corrtn = 'NONE'
+      observ = 'CASSINI'
+ 
+      <a href="../icy/cspice_subpnt.html">cspice_subpnt</a>, method, target, et, frame, corrtn, observ, $
+                                               spoint, trgepc, srfvec
+ 
+      <a href="../icy/cspice_reclat.html">cspice_reclat</a>, spoint, srad, slon, slat
+ 
+      fromfr = 'IAU_PHOEBE'
+      tofr   = 'CASSINI_INMS'
+ 
+      <a href="../icy/cspice_pxform.html">cspice_pxform</a>, fromfr, tofr, et, m2imat
+ 
+      <a href="../icy/cspice_mxv.html">cspice_mxv</a>,  m2imat, srfvec, sbpdir
+      <a href="../icy/cspice_vhat.html">cspice_vhat</a>, sbpdir, sbpdir
+ 
+      print, "lon    =  ", slon * <a href="../icy/cspice_dpr.html">cspice_dpr</a>()
+      print, "lat    =  ", slat * <a href="../icy/cspice_dpr.html">cspice_dpr</a>()
+      print, "sbpdir =  ", sbpdir
+ 
+      target = 'CASSINI'
+      frame  = 'J2000'
+      corrtn = 'NONE'
+      observ = 'PHOEBE'
+ 
+      <a href="../icy/cspice_spkezr.html">cspice_spkezr</a>, target, et, frame, corrtn, observ, state, ltime
+      scvdir = state[3:5]
+ 
+      fromfr = 'J2000'
+      tofr   = 'CASSINI_INMS'
+      <a href="../icy/cspice_pxform.html">cspice_pxform</a>, fromfr, tofr, et, j2imat
+ 
+      <a href="../icy/cspice_mxv.html">cspice_mxv</a>, j2imat, scvdir, scvdir
+      <a href="../icy/cspice_vhat.html">cspice_vhat</a>, scvdir, scvdir
+ 
+      print, "scvdir = ", scvdir[0:2]
+ 
+      <a href="../icy/cspice_unload.html">cspice_unload</a>, mkfile
+   END
+</PRE>
+   Meta-kernel file ``spice_example.tm'':
+<P>
+ 
+<PRE>
+   \begindata
+      KERNELS_TO_LOAD = (
+                        'kernels/lsk/naif0008.tls'
+                        'kernels/sclk/cas00084.tsc'
+                        'kernels/spk/020514_SE_SAT105.bsp'
+                        'kernels/spk/030201AP_SK_SM546_T45.bsp'
+                        'kernels/spk/981005_PLTEPH-DE405S.bsp'
+                        'kernels/spk/sat128.bsp'
+                        'kernels/ck/04135_04171pc_psiv2.bc'
+                        'kernels/fk/cas_v37.tf'
+                        'kernels/pck/cpck05Mar2004.tpc'
+                        )
+   \begintext
+</PRE>
+
+</TD>
+</TR>
+</TBODY>
+</TABLE>
+
+</BODY>
+
+</HTML>
